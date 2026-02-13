@@ -6,6 +6,8 @@
 #include "particle.h"
 #include "Math/random.h"
 
+// maybe move elsewhere
+#define SQ(x) ((x) * (x))
 
 Metropolis::Metropolis(std::unique_ptr<class Random> rng)
     : MonteCarlo(std::move(rng))
@@ -23,6 +25,23 @@ bool Metropolis::step(
      * accepted by the Metropolis test (compare the wave function evaluated at
      * this new position with the one at the old position).
      */
+    unsigned int particle_idx = m_rng->nextInt(0, particles.size() - 1);
+    
+    double wfold = waveFunction.evaluate(particles);
+    unsigned int numberOfDimensions = particles[particle_idx]->getNumberOfDimensions();
+    std::vector<double> displacement(numberOfDimensions);
+    for (unsigned int i = 0; i < numberOfDimensions; i++) {
+        displacement[i] = (m_rng->nextDouble() - .5) * stepLength;
+        particles[particle_idx]->adjustPosition(displacement[i], i);
+    }
+    double wfnew = waveFunction.evaluate(particles);
 
-    return false;
+    bool accepted = m_rng->nextDouble() <= SQ(wfnew) / SQ(wfold);
+    if (!accepted) {
+        for (unsigned int i = 0; i < numberOfDimensions; i++) {
+            particles[particle_idx]->adjustPosition(-displacement[i], i);
+        }
+    }
+
+    return accepted;
 }

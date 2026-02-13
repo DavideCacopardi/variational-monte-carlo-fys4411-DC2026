@@ -22,6 +22,10 @@ private:
     unsigned int m_numberOfDimensions = 0;
     unsigned int m_numberOfAcceptedSteps = 0;
     double m_energy = 0;
+    double m_energySQ = 0;
+    double m_variance = 0;
+    double m_error = 0;
     double m_cumulativeEnergy = 0;
+    double m_cumulativeEnergySQ = 0;
     double m_stepLength = 0;
 };

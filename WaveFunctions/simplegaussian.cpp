@@ -26,8 +26,8 @@ double SimpleGaussian::evaluate(std::vector<std::unique_ptr<class Particle>>& pa
     long double sum = 0;
 
     // sum all coordinates squared
-    for (int i = 0; i < particles.size(); i++) {
-        for (int j = 0; j < particles[i]->getNumberOfDimensions(); j++) {
+    for (unsigned int i = 0; i < particles.size(); i++) {
+        for (unsigned int j = 0; j < particles[i]->getNumberOfDimensions(); j++) {
             sum += SQ(particles[i]->getPosition()[j]);
         }
     }
@@ -45,29 +45,23 @@ double SimpleGaussian::computeDoubleDerivative(std::vector<std::unique_ptr<class
      * This quantity is needed to compute the (local) energy (consider the
      * Schrödinger equation to see how the two are related).
      */
-    long double laplacian = 0;
     
-    for (int i = 0; i < particles.size(); i++) {
-        long double laplacian_ith_term = 0;
+    double alpha = m_parameters[0];
+    unsigned int numberOfDimensions = particles[0]->getNumberOfDimensions();
 
-        // compute laplacian of phi(r_i)
-        double norm_i_sq = 0;   // norm of i-th particle's position squared
-        for (int j = 0; j < particles[i]->getNumberOfDimensions(); j++) {
-            norm_i_sq += SQ(particles[i]->getPosition()[j]);
+    double sum_over_particles = 0;
+    for (unsigned int i = 0; i < particles.size(); i++) {
+        double rad_sq = 0;
+        for (unsigned int j = 0; j < numberOfDimensions; j++) {
+            rad_sq += SQ(particles[i]->getPosition()[j]);
         }
-        // assumes the first parameter is the alpha value
-        laplacian_ith_term = -2 * m_parameters[0] * (1 - 2 * m_parameters[0] * norm_i_sq) * exp(-m_parameters[0] * norm_i_sq);
+        
+        double phi_i = exp(-alpha * rad_sq);
+        double lapl_term = -2 * alpha * (numberOfDimensions - 2 * alpha * rad_sq) * phi_i;
 
-        // compute productory of phi_j s.t. j != j
-        for (int j = 0; j < particles.size(); j++) {
-            if (j == i) continue;
+        double prod_term = evaluate(particles) / phi_i;
 
-            laplacian_ith_term *= evaluate(particles);
-        }
-
-        // no other non-zero term appears in the simple case
-        laplacian += laplacian_ith_term;
+        sum_over_particles += lapl_term * prod_term;
     }
-
-    return laplacian;
+    return sum_over_particles;
 }

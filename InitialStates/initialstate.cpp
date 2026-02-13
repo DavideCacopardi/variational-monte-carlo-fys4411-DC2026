@@ -31,7 +31,9 @@ std::vector<std::unique_ptr<Particle>> setupRandomUniformInitialState(
              * according to their index in the particles list (this is
              * NOT a good idea).
              */
-            position.push_back(i);
+
+            // sets the coordinate to a random value from the uniform distribution [-5,5)
+            position.push_back((rng.nextDouble() - 0.5) * 10.f);
         }
 
         particles.push_back(std::make_unique<Particle>(position));

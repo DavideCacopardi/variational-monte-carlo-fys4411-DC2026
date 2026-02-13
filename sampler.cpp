@@ -8,6 +8,9 @@
 #include "Hamiltonians/hamiltonian.h"
 #include "WaveFunctions/wavefunction.h"
 
+// maybe move elsewhere
+#define SQ(x) ((x) * (x))
+
 using std::cout;
 using std::endl;
 
@@ -23,7 +26,11 @@ Sampler::Sampler(
     m_numberOfParticles = numberOfParticles;
     m_numberOfDimensions = numberOfDimensions;
     m_energy = 0;
+    m_energySQ = 0;
+    m_variance = 0;
+    m_error = 0;
     m_cumulativeEnergy = 0;
+    m_cumulativeEnergySQ = 0;
     m_stepLength = stepLength;
     m_numberOfAcceptedSteps = 0;
 }
@@ -34,7 +41,8 @@ void Sampler::sample(bool acceptedStep, System* system) {
      * Note that there are (way) more than the single one here currently.
      */
     auto localEnergy = system->computeLocalEnergy();
-    m_cumulativeEnergy  += localEnergy;
+    m_cumulativeEnergy += localEnergy;
+    m_cumulativeEnergySQ += SQ(localEnergy);
     m_stepNumber++;
     m_numberOfAcceptedSteps += acceptedStep;
 }
@@ -59,6 +67,8 @@ void Sampler::printOutputToTerminal(System& system) {
     cout << endl;
     cout << "  -- Results -- " << endl;
     cout << " Energy : " << m_energy << endl;
+    cout << " Variance : " << m_variance << endl;
+    cout << " Error : " << m_error << endl;
     cout << endl;
 }
 
@@ -66,4 +76,7 @@ void Sampler::computeAverages() {
     /* Compute the averages of the sampled quantities.
      */
     m_energy = m_cumulativeEnergy / m_numberOfMetropolisSteps;
+    m_energySQ = m_cumulativeEnergySQ / m_numberOfMetropolisSteps;
+    m_variance = m_energySQ - SQ(m_energy);
+    m_error = sqrt(m_variance);
 }

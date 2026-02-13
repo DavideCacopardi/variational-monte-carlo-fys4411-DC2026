@@ -6,6 +6,9 @@
 #include "../particle.h"
 #include "../WaveFunctions/wavefunction.h"
 
+// maybe move elsewhere
+#define SQ(x) ((x) * (x))
+
 using std::cout;
 using std::endl;
 
@@ -26,7 +29,15 @@ double HarmonicOscillator::computeLocalEnergy(
      * to get the Laplacian of the wave function.
      * */
 
-    double potentialEnergy = 0;
-    double kineticEnergy   = 0;
+    double kineticEnergy = -0.5 * waveFunction.computeDoubleDerivative(particles) / waveFunction.evaluate(particles);
+
+    double sum = 0;
+    for (unsigned int i = 0; i < particles.size(); i++) {
+        for (unsigned int j = 0; j < particles[0]->getNumberOfDimensions(); j++) {
+            sum += SQ(particles[i]->getPosition()[j]);
+        }
+    }
+    double potentialEnergy = 0.5 * SQ(m_omega) * sum; // * m
+    
     return kineticEnergy + potentialEnergy;
 }
