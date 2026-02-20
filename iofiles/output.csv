@@ -1,0 +1,48 @@
+
+#  -- System info -- 
+# Number of particles  : 1
+# Number of dimensions : 3
+# Number of Metropolis steps run : 10^6
+# Step length used : 0.1
+# Ratio of accepted steps: 0.970616
+
+#  -- Wave function parameters -- 
+# Number of parameters : 2
+# p[0],  	  p[1],  	  energy,  	  variance,  	  error
+0.3, 	1, 	1.300283929, 	0.1156097701, 	0.3400143675
+
+#  -- System info -- 
+# Number of particles  : 1
+# Number of dimensions : 3
+# Number of Metropolis steps run : 10^6
+# Step length used : 0.1
+# Ratio of accepted steps: 0.965834
+
+#  -- Wave function parameters -- 
+# Number of parameters : 2
+# p[0],  	  p[1],  	  energy,  	  variance,  	  error
+0.4, 	1, 	1.369828269, 	0.02033705357, 	0.1426080417
+
+#  -- System info -- 
+# Number of particles  : 1
+# Number of dimensions : 3
+# Number of Metropolis steps run : 10^6
+# Step length used : 0.1
+# Ratio of accepted steps: 0.961735
+
+#  -- Wave function parameters -- 
+# Number of parameters : 2
+# p[0],  	  p[1],  	  energy,  	  variance,  	  error
+0.5, 	1, 	1.5, 	0, 	0
+
+#  -- System info -- 
+# Number of particles  : 1
+# Number of dimensions : 3
+# Number of Metropolis steps run : 10^6
+# Step length used : 0.1
+# Ratio of accepted steps: 0.958043
+
+#  -- Wave function parameters -- 
+# Number of parameters : 2
+# p[0],  	  p[1],  	  energy,  	  variance,  	  error
+0.6, 	1, 	1.661643668, 	0.01308593637, 	0.1143937777

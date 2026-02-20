@@ -12,6 +12,7 @@ public:
 
     void sample(bool acceptedStep, class System* system);
     void printOutputToTerminal(class System& system);
+    void printOutputToFile(class System& system, std::ofstream& outs);
     void computeAverages();
     double getEnergy() { return m_energy; }
 

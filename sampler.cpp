@@ -1,5 +1,7 @@
 #include <memory>
 #include <iostream>
+#include <iomanip>
+#include <fstream>
 #include <cmath>
 #include <vector>
 #include "system.h"
@@ -71,6 +73,32 @@ void Sampler::printOutputToTerminal(System& system) {
     cout << " Error : " << m_error << endl;
     cout << endl;
 }
+
+void Sampler::printOutputToFile(System& system, std::ofstream& outs) {
+    auto pa = system.getWaveFunctionParameters();
+    auto p = pa.size();
+
+    outs << endl;
+    outs << "#  -- System info -- " << endl;
+    outs << "# Number of particles  : " << m_numberOfParticles << endl;
+    outs << "# Number of dimensions : " << m_numberOfDimensions << endl;
+    outs << "# Number of Metropolis steps run : 10^" << std::log10(m_numberOfMetropolisSteps) << endl;
+    outs << "# Step length used : " << m_stepLength << endl;
+    outs << "# Ratio of accepted steps: " << ((double) m_numberOfAcceptedSteps) / ((double) m_numberOfMetropolisSteps) << endl;
+    outs << endl;
+    outs << "#  -- Wave function parameters -- " << endl;
+    outs << "# Number of parameters : " << p << "\n#";
+    for (unsigned int i = 0; i < p; i++) {
+        outs << " p[" << i <<  "],  \t ";
+    }
+    outs << " energy,  \t  variance,  \t  error\n";
+    for (unsigned int i = 0; i < p; i++) {
+        outs << pa.at(i) << ", \t";
+    }
+    outs << std::setprecision(10);
+    outs << m_energy << ", \t" << m_variance << ", \t" << m_error << endl;
+}
+
 
 void Sampler::computeAverages() {
     /* Compute the averages of the sampled quantities.
