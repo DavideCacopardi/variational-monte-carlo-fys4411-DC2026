@@ -3,12 +3,12 @@
 #include <cassert>
 
 #include "simplegaussian.h"
+#include "common.h"
 #include "wavefunction.h"
 #include "../system.h"
 #include "../particle.h"
 
-// maybe move elsewhere
-#define SQ(x) ((x) * (x))
+using namespace CommonUtils;
 
 SimpleGaussian::SimpleGaussian(double alpha)
 {
@@ -28,7 +28,7 @@ double SimpleGaussian::evaluate(std::vector<std::unique_ptr<class Particle>>& pa
     // sum all coordinates squared
     for (unsigned int i = 0; i < particles.size(); i++) {
         for (unsigned int j = 0; j < particles[i]->getNumberOfDimensions(); j++) {
-            sum += SQ(particles[i]->getPosition()[j]);
+            sum += sq(particles[i]->getPosition()[j]);
         }
     }
 
@@ -53,7 +53,7 @@ double SimpleGaussian::computeDoubleDerivative(std::vector<std::unique_ptr<class
     for (unsigned int i = 0; i < particles.size(); i++) {
         double rad_sq = 0;
         for (unsigned int j = 0; j < numberOfDimensions; j++) {
-            rad_sq += SQ(particles[i]->getPosition()[j]);
+            rad_sq += sq(particles[i]->getPosition()[j]);
         }
         
         double phi_i = exp(-alpha * rad_sq);

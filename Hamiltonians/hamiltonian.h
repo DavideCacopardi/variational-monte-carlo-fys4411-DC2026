@@ -10,5 +10,8 @@ public:
             class WaveFunction& waveFunction,
             std::vector<std::unique_ptr<class Particle>>& particles
     ) = 0;
+    void set_analytic_ifAvailable(bool val);
+protected:
+    bool m_analytic_ifAvailable = true;
 };
 

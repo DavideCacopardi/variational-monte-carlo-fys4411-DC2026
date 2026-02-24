@@ -1,21 +1,18 @@
-#include<memory>
+#include <memory>
 #include <cassert>
 #include <iostream>
 
+#include "../common.h"
 #include "harmonicoscillator.h"
 #include "../particle.h"
 #include "../WaveFunctions/wavefunction.h"
 
-// maybe move elsewhere
-#define SQ(x) ((x) * (x))
-
-using std::cout;
-using std::endl;
+using namespace CommonUtils;
 
 HarmonicOscillator::HarmonicOscillator(double omega)
 {
     assert(omega > 0);
-    m_omega  = omega;
+    m_omega = omega;
 }
 
 double HarmonicOscillator::computeLocalEnergy(
@@ -29,15 +26,21 @@ double HarmonicOscillator::computeLocalEnergy(
      * to get the Laplacian of the wave function.
      * */
 
-    double kineticEnergy = -0.5 * waveFunction.computeDoubleDerivative(particles) / waveFunction.evaluate(particles);
+    double kineticEnergy;
+    if (waveFunction.hasAnalyticalDerivative() && m_analytic_ifAvailable) {
+        kineticEnergy = -0.5 * waveFunction.computeDoubleDerivative(particles) / waveFunction.evaluate(particles);
+    }
+    else {
+        kineticEnergy = -0.5 * waveFunction.computeNumericalDoubleDerivative(particles) / waveFunction.evaluate(particles);
+    }   -0.5 * waveFunction.computeNumericalDoubleDerivative(particles) / waveFunction.evaluate(particles);
 
     double sum = 0;
     for (unsigned int i = 0; i < particles.size(); i++) {
         for (unsigned int j = 0; j < particles[0]->getNumberOfDimensions(); j++) {
-            sum += SQ(particles[i]->getPosition()[j]);
+            sum += sq(particles[i]->getPosition()[j]);
         }
     }
-    double potentialEnergy = 0.5 * SQ(m_omega) * sum; // * m
+    double potentialEnergy = 0.5 * sq(m_omega) * sum; // * m
     
     return kineticEnergy + potentialEnergy;
 }

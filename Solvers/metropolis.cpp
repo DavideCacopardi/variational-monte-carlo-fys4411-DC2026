@@ -1,16 +1,16 @@
 #include <memory>
 #include <vector>
 
+#include "common.h"
 #include "metropolis.h"
 #include "WaveFunctions/wavefunction.h"
 #include "particle.h"
 #include "Math/random.h"
 
-// maybe move elsewhere
-#define SQ(x) ((x) * (x))
+using namespace CommonUtils;
 
-Metropolis::Metropolis(std::unique_ptr<class Random> rng)
-    : MonteCarlo(std::move(rng))
+Metropolis::Metropolis(std::unique_ptr<class Random> rng, bool preferAnalytic)
+    : MonteCarlo(std::move(rng)), m_preferAnalytic(preferAnalytic)
 {
 }
 
@@ -36,7 +36,7 @@ bool Metropolis::step(
     }
     double wfnew = waveFunction.evaluate(particles);
 
-    bool accepted = m_rng->nextDouble() <= SQ(wfnew) / SQ(wfold);
+    bool accepted = m_rng->nextDouble() <= sq(wfnew) / sq(wfold);
     if (!accepted) {
         for (unsigned int i = 0; i < numberOfDimensions; i++) {
             particles[particle_idx]->adjustPosition(-displacement[i], i);

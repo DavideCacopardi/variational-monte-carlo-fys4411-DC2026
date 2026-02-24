@@ -2,13 +2,13 @@
 #include <cmath>
 #include <cassert>
 
+#include "../common.h"
 #include "ellipticgaussian.h"
 #include "wavefunction.h"
 #include "../system.h"
 #include "../particle.h"
 
-// maybe move elsewhere
-#define SQ(x) ((x) * (x))
+using namespace CommonUtils;
 
 EllipticGaussian::EllipticGaussian(double alpha, double beta)
 {
@@ -29,11 +29,10 @@ double EllipticGaussian::evaluate(std::vector<std::unique_ptr<class Particle>>& 
     // sum all coordinates squared
     for (unsigned int i = 0; i < particles.size(); i++) {
         for (unsigned int j = 0; j < particles[i]->getNumberOfDimensions(); j++) {
-            sum += SQ(particles[i]->getPosition()[j]);
             if (j == 2)
-                sum += m_parameters[1] * SQ(particles[i]->getPosition()[j]);
+                sum += m_parameters[1] * sq(particles[i]->getPosition()[j]);
             else
-                sum += SQ(particles[i]->getPosition()[j]);
+                sum += sq(particles[i]->getPosition()[j]);
         }
     }
 
@@ -50,23 +49,29 @@ double EllipticGaussian::computeDoubleDerivative(std::vector<std::unique_ptr<cla
      * This quantity is needed to compute the (local) energy (consider the
      * Schrödinger equation to see how the two are related).
      */
-    
+
     double alpha = m_parameters[0];
     double beta = m_parameters[1];
     unsigned int numberOfDimensions = particles[0]->getNumberOfDimensions();
 
     double sum_over_particles = 0;
     for (unsigned int i = 0; i < particles.size(); i++) {
-        double rad_sq = 0;
+        double rad_sq = 0;       // x² + y² + βz²   (for the linear alpha term)
+        double rad_sq2 = 0;      // x² + y² + β²z²  (for the quadratic alpha term)
+
         for (unsigned int j = 0; j < numberOfDimensions; j++) {
-            if (j == 2)
-                rad_sq += beta * SQ(particles[i]->getPosition()[j]);
-            else
-                rad_sq += SQ(particles[i]->getPosition()[j]);        
+            if (j == 2) {
+                rad_sq  += beta * sq(particles[i]->getPosition()[j]);
+                rad_sq2 += sq(beta * particles[i]->getPosition()[j]);
+            }
+            else {
+                rad_sq += sq(particles[i]->getPosition()[j]);
+                rad_sq2 += sq(particles[i]->getPosition()[j]);
+            }
         }
-        
+    
         double phi_i = exp(-alpha * rad_sq);
-        double lapl_term = -2 * alpha * (2 + beta - 2 * alpha * rad_sq) * phi_i;
+        double lapl_term = (-2 * alpha * (2 + beta) + 4 * sq(alpha) * rad_sq2) * phi_i;
 
         double prod_term = evaluate(particles) / phi_i;
 

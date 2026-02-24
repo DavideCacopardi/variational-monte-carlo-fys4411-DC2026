@@ -9,7 +9,7 @@
 #  -- Wave function parameters -- 
 # Number of parameters : 2
 # p[0],  	  p[1],  	  energy,  	  variance,  	  error
-0.3, 	1, 	1.680038009, 	0.4612379766, 	0.6791450336
+0.3, 	1, 	1.680038009, 	0.4612379765, 	0.6791450335
 
 #  -- System info -- 
 # Number of particles  : 1
@@ -21,7 +21,7 @@
 #  -- Wave function parameters -- 
 # Number of parameters : 2
 # p[0],  	  p[1],  	  energy,  	  variance,  	  error
-0.4, 	1, 	1.531828485, 	0.08114614141, 	0.284861618
+0.4, 	1, 	1.531828485, 	0.08114614201, 	0.2848616191
 
 #  -- System info -- 
 # Number of particles  : 1
@@ -33,7 +33,7 @@
 #  -- Wave function parameters -- 
 # Number of parameters : 2
 # p[0],  	  p[1],  	  energy,  	  variance,  	  error
-0.5, 	1, 	1.5, 	0, 	0
+0.5, 	1, 	1.5, 	1.687538997e-14, 	1.299053116e-07
 
 #  -- System info -- 
 # Number of particles  : 1
@@ -45,4 +45,4 @@
 #  -- Wave function parameters -- 
 # Number of parameters : 2
 # p[0],  	  p[1],  	  energy,  	  variance,  	  error
-0.6, 	1, 	1.524804799, 	0.05464368041, 	0.2337598777
+0.6, 	1, 	1.524804798, 	0.05464367913, 	0.2337598749

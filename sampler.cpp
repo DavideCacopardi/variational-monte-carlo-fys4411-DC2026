@@ -5,17 +5,15 @@
 #include <cmath>
 #include <vector>
 #include "system.h"
+#include "common.h"
 #include "sampler.h"
 #include "particle.h"
 #include "Hamiltonians/hamiltonian.h"
 #include "WaveFunctions/wavefunction.h"
 
-// maybe move elsewhere
-#define SQ(x) ((x) * (x))
-
 using std::cout;
 using std::endl;
-
+using namespace CommonUtils;
 
 Sampler::Sampler(
         unsigned int numberOfParticles,
@@ -44,7 +42,7 @@ void Sampler::sample(bool acceptedStep, System* system) {
      */
     auto localEnergy = system->computeLocalEnergy();
     m_cumulativeEnergy += localEnergy;
-    m_cumulativeEnergySQ += SQ(localEnergy);
+    m_cumulativeEnergySQ += sq(localEnergy);
     m_stepNumber++;
     m_numberOfAcceptedSteps += acceptedStep;
 }
@@ -105,6 +103,6 @@ void Sampler::computeAverages() {
      */
     m_energy = m_cumulativeEnergy / m_numberOfMetropolisSteps;
     m_energySQ = m_cumulativeEnergySQ / m_numberOfMetropolisSteps;
-    m_variance = m_energySQ - SQ(m_energy);
+    m_variance = m_energySQ - sq(m_energy);
     m_error = sqrt(m_variance);
 }

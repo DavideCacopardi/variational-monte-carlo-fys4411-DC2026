@@ -11,6 +11,8 @@ public:
     int getNumberOfParameters() { return m_numberOfParameters; }
     const std::vector<double>& getParameters() { return m_parameters; }
     virtual double evaluate(std::vector<std::unique_ptr<class Particle>>& particles) = 0;
+    double computeNumericalDoubleDerivative(std::vector<std::unique_ptr<class Particle>>& particles);
+    virtual bool hasAnalyticalDerivative() { return false; }
     virtual double computeDoubleDerivative(std::vector<std::unique_ptr<class Particle>>& particles) = 0;
 
 protected:

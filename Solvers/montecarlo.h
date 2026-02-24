@@ -12,7 +12,9 @@ public:
     virtual bool step(
             double stepLength,
             class WaveFunction& waveFunction,
-            std::vector<std::unique_ptr<class Particle>>& particles) = 0;
+        std::vector<std::unique_ptr<class Particle>>& particles) = 0;
+    virtual bool hasAnalyticalOption() = 0;
+    virtual bool get_preferAnalytic() = 0;
 
 protected:
     std::unique_ptr<class Random> m_rng;
