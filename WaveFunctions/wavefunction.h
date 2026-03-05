@@ -14,6 +14,7 @@ public:
     double computeNumericalDoubleDerivative(std::vector<std::unique_ptr<class Particle>>& particles);
     virtual bool hasAnalyticalDerivative() { return false; }
     virtual double computeDoubleDerivative(std::vector<std::unique_ptr<class Particle>>& particles) = 0;
+    virtual std::vector<double> computeQuantumForce(std::vector<std::unique_ptr<class Particle>>& particles, unsigned int particle_idx) = 0;
 
 protected:
     int m_numberOfParameters = 0;

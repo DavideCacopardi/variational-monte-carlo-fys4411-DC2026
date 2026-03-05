@@ -30,32 +30,32 @@ System::System(
 
 
 unsigned int System::runEquilibrationSteps(
-        double stepLength,
+        double stepParameter,
         unsigned int numberOfEquilibrationSteps)
 {
     unsigned int acceptedSteps = 0;
 
     for (unsigned int i = 0; i < numberOfEquilibrationSteps; i++) {
-        acceptedSteps += m_solver->step(stepLength, *m_waveFunction, m_particles);
+        acceptedSteps += m_solver->step(stepParameter, *m_waveFunction, m_particles);
     }
 
     return acceptedSteps;
 }
 
 std::unique_ptr<class Sampler> System::runMetropolisSteps(
-        double stepLength,
+        double stepParameter,
         unsigned int numberOfMetropolisSteps)
 {
     auto sampler = std::make_unique<Sampler>(
             m_numberOfParticles,
             m_numberOfDimensions,
-            stepLength,
+            stepParameter,
             numberOfMetropolisSteps);
 
     for (unsigned int i = 0; i < numberOfMetropolisSteps; i++) {
         /* Call solver method to do a single Monte-Carlo step.
          */
-        bool acceptedStep = m_solver->step(stepLength, *m_waveFunction, m_particles);
+        bool acceptedStep = m_solver->step(stepParameter, *m_waveFunction, m_particles);
 
         /* Here you should sample the energy (and maybe other things) using the
          * sampler instance of the Sampler class.

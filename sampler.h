@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <ctime>
 
 class Sampler {
 public:
@@ -15,6 +16,9 @@ public:
     void printOutputToFile(class System& system, std::ofstream& outs);
     void computeAverages();
     double getEnergy() { return m_energy; }
+    void startStopwatch();
+    double stopStopwatch();
+    double partialStopwatch();
 
 private:
     unsigned int m_stepNumber = 0;
@@ -29,4 +33,6 @@ private:
     double m_cumulativeEnergy = 0;
     double m_cumulativeEnergySQ = 0;
     double m_stepLength = 0;
+    std::time_t m_watch_start = 0;
+    std::time_t m_watch_end = 0;
 };

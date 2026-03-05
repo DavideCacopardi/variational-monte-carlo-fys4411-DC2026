@@ -10,7 +10,7 @@ public:
     virtual ~MonteCarlo() = default;
 
     virtual bool step(
-            double stepLength,
+            double stepParameter,
             class WaveFunction& waveFunction,
         std::vector<std::unique_ptr<class Particle>>& particles) = 0;
     virtual bool hasAnalyticalOption() = 0;

@@ -10,8 +10,7 @@
 
 using namespace CommonUtils;
 
-EllipticGaussian::EllipticGaussian(double alpha, double beta)
-{
+EllipticGaussian::EllipticGaussian(double alpha, double beta) {
     assert(alpha >= 0 && beta >= 0);
     m_numberOfParameters = 2;
     m_parameters.reserve(2);
@@ -28,7 +27,7 @@ double EllipticGaussian::evaluate(std::vector<std::unique_ptr<class Particle>>& 
 
     // sum all coordinates squared
     for (unsigned int i = 0; i < particles.size(); i++) {
-        for (unsigned int j = 0; j < particles[i]->getNumberOfDimensions(); j++) {
+        for (unsigned int j = 0; j < m_NDIM; j++) {
             if (j == 2)
                 sum += m_parameters[1] * sq(particles[i]->getPosition()[j]);
             else
@@ -52,16 +51,15 @@ double EllipticGaussian::computeDoubleDerivative(std::vector<std::unique_ptr<cla
 
     double alpha = m_parameters[0];
     double beta = m_parameters[1];
-    unsigned int numberOfDimensions = particles[0]->getNumberOfDimensions();
 
     double sum_over_particles = 0;
     for (unsigned int i = 0; i < particles.size(); i++) {
         double rad_sq = 0;       // x² + y² + βz²   (for the linear alpha term)
         double rad_sq2 = 0;      // x² + y² + β²z²  (for the quadratic alpha term)
 
-        for (unsigned int j = 0; j < numberOfDimensions; j++) {
+        for (unsigned int j = 0; j < m_NDIM; j++) {
             if (j == 2) {
-                rad_sq  += beta * sq(particles[i]->getPosition()[j]);
+                rad_sq += beta * sq(particles[i]->getPosition()[j]);
                 rad_sq2 += sq(beta * particles[i]->getPosition()[j]);
             }
             else {
@@ -69,7 +67,7 @@ double EllipticGaussian::computeDoubleDerivative(std::vector<std::unique_ptr<cla
                 rad_sq2 += sq(particles[i]->getPosition()[j]);
             }
         }
-    
+
         double phi_i = exp(-alpha * rad_sq);
         double lapl_term = (-2 * alpha * (2 + beta) + 4 * sq(alpha) * rad_sq2) * phi_i;
 
@@ -78,4 +76,47 @@ double EllipticGaussian::computeDoubleDerivative(std::vector<std::unique_ptr<cla
         sum_over_particles += lapl_term * prod_term;
     }
     return sum_over_particles;
+}
+
+std::vector<double> EllipticGaussian::computeQuantumForce(std::vector<std::unique_ptr<class Particle>>& particles, unsigned int particle_idx) {
+    double alpha = m_parameters[0];
+    double beta = m_parameters[1];
+    std::vector<double> qForce = std::vector<double>(m_NDIM);
+
+    double prod = 1;
+    for (int i = 0; i < particles.size(); i++) {
+        if (i == particle_idx) continue;
+        
+        double rad_sq = 0;      // x² + y² + βz² 
+        for (unsigned int j = 0; j < m_NDIM; j++) {
+            if (j == 2) {
+                rad_sq += beta * sq(particles[i]->getPosition()[j]);
+            }
+            else {
+                rad_sq += sq(particles[i]->getPosition()[j]);
+            }
+        }
+
+        prod *= exp(-alpha * rad_sq);
+    }
+
+    for (unsigned int i = 0; i < m_NDIM; i++) {
+        double rad_sq = 0;      // x² + y² + βz² 
+        for (unsigned int j = 0; j < m_NDIM; j++) {
+            if (j == 2) {
+                rad_sq += beta * sq(particles[particle_idx]->getPosition()[j]);
+            }
+            else {
+                rad_sq += sq(particles[particle_idx]->getPosition()[j]);
+            }
+        }
+
+        double deriv = -2 * alpha * particles[particle_idx]->getPosition()[i] * exp(-alpha * rad_sq);
+        if (i == 2)
+            deriv *= beta;
+        
+        qForce[i] = prod * deriv;
+    }
+
+    return qForce;
 }

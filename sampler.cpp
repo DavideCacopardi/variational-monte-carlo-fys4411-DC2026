@@ -4,6 +4,7 @@
 #include <fstream>
 #include <cmath>
 #include <vector>
+#include <ctime>
 #include "system.h"
 #include "common.h"
 #include "sampler.h"
@@ -33,6 +34,7 @@ Sampler::Sampler(
     m_cumulativeEnergySQ = 0;
     m_stepLength = stepLength;
     m_numberOfAcceptedSteps = 0;
+    m_watch_start = time(nullptr);
 }
 
 
@@ -45,6 +47,7 @@ void Sampler::sample(bool acceptedStep, System* system) {
     m_cumulativeEnergySQ += sq(localEnergy);
     m_stepNumber++;
     m_numberOfAcceptedSteps += acceptedStep;
+    m_watch_end = time(nullptr);
 }
 
 void Sampler::printOutputToTerminal(System& system) {
@@ -58,6 +61,7 @@ void Sampler::printOutputToTerminal(System& system) {
     cout << " Number of Metropolis steps run : 10^" << std::log10(m_numberOfMetropolisSteps) << endl;
     cout << " Step length used : " << m_stepLength << endl;
     cout << " Ratio of accepted steps: " << ((double) m_numberOfAcceptedSteps) / ((double) m_numberOfMetropolisSteps) << endl;
+    cout << " Elapsed time: " << m_watch_end - m_watch_start << " s\n";
     cout << endl;
     cout << "  -- Wave function parameters -- " << endl;
     cout << " Number of parameters : " << p << endl;
@@ -82,7 +86,8 @@ void Sampler::printOutputToFile(System& system, std::ofstream& outs) {
     outs << "# Number of dimensions : " << m_numberOfDimensions << endl;
     outs << "# Number of Metropolis steps run : 10^" << std::log10(m_numberOfMetropolisSteps) << endl;
     outs << "# Step length used : " << m_stepLength << endl;
-    outs << "# Ratio of accepted steps: " << ((double) m_numberOfAcceptedSteps) / ((double) m_numberOfMetropolisSteps) << endl;
+    outs << "# Ratio of accepted steps: " << ((double)m_numberOfAcceptedSteps) / ((double)m_numberOfMetropolisSteps) << endl;
+    outs << "# Elapsed time: " << m_watch_end - m_watch_start << " s\n";
     outs << endl;
     outs << "#  -- Wave function parameters -- " << endl;
     outs << "# Number of parameters : " << p << "\n#";
