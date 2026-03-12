@@ -12,11 +12,10 @@
 
 
 System::System(
-        std::unique_ptr<class Hamiltonian> hamiltonian,
-        std::unique_ptr<class WaveFunction> waveFunction,
-        std::unique_ptr<class MonteCarlo> solver,
-        std::vector<std::unique_ptr<class Particle>> particles)
-{
+    std::unique_ptr<class Hamiltonian> hamiltonian,
+    std::unique_ptr<class WaveFunction> waveFunction,
+    std::unique_ptr<class MonteCarlo> solver,
+    std::vector<std::unique_ptr<class Particle>> particles) {
     m_numberOfParticles = particles.size();;
     m_numberOfDimensions = particles[0]->getNumberOfDimensions();
     m_hamiltonian = std::move(hamiltonian);
@@ -29,10 +28,7 @@ System::System(
 }
 
 
-unsigned int System::runEquilibrationSteps(
-        double stepParameter,
-        unsigned int numberOfEquilibrationSteps)
-{
+unsigned int System::runEquilibrationSteps(double stepParameter, unsigned int numberOfEquilibrationSteps) {
     unsigned int acceptedSteps = 0;
 
     for (unsigned int i = 0; i < numberOfEquilibrationSteps; i++) {
@@ -42,15 +38,13 @@ unsigned int System::runEquilibrationSteps(
     return acceptedSteps;
 }
 
-std::unique_ptr<class Sampler> System::runMetropolisSteps(
-        double stepParameter,
-        unsigned int numberOfMetropolisSteps)
-{
+std::unique_ptr<class Sampler> System::runMetropolisSteps(double stepParameter, unsigned int numberOfMetropolisSteps) {
     auto sampler = std::make_unique<Sampler>(
-            m_numberOfParticles,
-            m_numberOfDimensions,
-            stepParameter,
-            numberOfMetropolisSteps);
+        m_numberOfParticles,
+        m_numberOfDimensions,
+        m_waveFunction->getNumberOfParameters(),
+        stepParameter,
+        numberOfMetropolisSteps);
 
     for (unsigned int i = 0; i < numberOfMetropolisSteps; i++) {
         /* Call solver method to do a single Monte-Carlo step.
@@ -68,14 +62,17 @@ std::unique_ptr<class Sampler> System::runMetropolisSteps(
     return sampler;
 }
 
-double System::computeLocalEnergy()
-{
+double System::computeLocalEnergy() {
     // Helper function
     return m_hamiltonian->computeLocalEnergy(*m_waveFunction, m_particles);
 }
 
-const std::vector<double>& System::getWaveFunctionParameters()
-{
+double System::computeParamDerivativeLn(unsigned int param_idx) {
+    // Helper function
+    return m_waveFunction->computeParamDerivativeLn(m_particles, param_idx);
+}
+
+const std::vector<double>& System::getWaveFunctionParameters() {
     // Helper function
     return m_waveFunction->getParameters();
 }

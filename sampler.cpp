@@ -4,7 +4,7 @@
 #include <fstream>
 #include <cmath>
 #include <vector>
-#include <ctime>
+#include <chrono>
 #include "system.h"
 #include "common.h"
 #include "sampler.h"
@@ -12,20 +12,22 @@
 #include "Hamiltonians/hamiltonian.h"
 #include "WaveFunctions/wavefunction.h"
 
-using std::cout;
-using std::endl;
 using namespace CommonUtils;
 
 Sampler::Sampler(
-        unsigned int numberOfParticles,
-        unsigned int numberOfDimensions,
-        double stepLength,
-        unsigned int numberOfMetropolisSteps)
-{
+    unsigned int numberOfParticles,
+    unsigned int numberOfDimensions,
+    unsigned int numberOfParameters,
+    double stepLength,
+    unsigned int numberOfMetropolisSteps
+) {
     m_stepNumber = 0;
     m_numberOfMetropolisSteps = numberOfMetropolisSteps;
     m_numberOfParticles = numberOfParticles;
     m_numberOfDimensions = numberOfDimensions;
+    m_numberOfParameters = numberOfParameters;
+    m_covariance.resize(m_numberOfParameters, 0);
+    m_opO.resize(m_numberOfParameters, 0);
     m_energy = 0;
     m_energySQ = 0;
     m_variance = 0;
@@ -34,7 +36,7 @@ Sampler::Sampler(
     m_cumulativeEnergySQ = 0;
     m_stepLength = stepLength;
     m_numberOfAcceptedSteps = 0;
-    m_watch_start = time(nullptr);
+    m_watch_start = std::chrono::high_resolution_clock::now();
 }
 
 
@@ -42,66 +44,79 @@ void Sampler::sample(bool acceptedStep, System* system) {
     /* Here you should sample all the interesting things you want to measure.
      * Note that there are (way) more than the single one here currently.
      */
-    auto localEnergy = system->computeLocalEnergy();
+    double localEnergy = system->computeLocalEnergy();
     m_cumulativeEnergy += localEnergy;
     m_cumulativeEnergySQ += sq(localEnergy);
+    for (unsigned int i = 0; i < m_numberOfParameters; i++) {
+        double dLn = system->computeParamDerivativeLn(i);
+        m_opO[i] += dLn;
+        m_covariance[i] += dLn * localEnergy;
+    }
     m_stepNumber++;
     m_numberOfAcceptedSteps += acceptedStep;
-    m_watch_end = time(nullptr);
+    m_watch_end = std::chrono::high_resolution_clock::now();
 }
 
 void Sampler::printOutputToTerminal(System& system) {
-    auto pa = system.getWaveFunctionParameters();
-    auto p = pa.size();
-
-    cout << endl;
-    cout << "  -- System info -- " << endl;
-    cout << " Number of particles  : " << m_numberOfParticles << endl;
-    cout << " Number of dimensions : " << m_numberOfDimensions << endl;
-    cout << " Number of Metropolis steps run : 10^" << std::log10(m_numberOfMetropolisSteps) << endl;
-    cout << " Step length used : " << m_stepLength << endl;
-    cout << " Ratio of accepted steps: " << ((double) m_numberOfAcceptedSteps) / ((double) m_numberOfMetropolisSteps) << endl;
-    cout << " Elapsed time: " << m_watch_end - m_watch_start << " s\n";
-    cout << endl;
-    cout << "  -- Wave function parameters -- " << endl;
-    cout << " Number of parameters : " << p << endl;
-    for (unsigned int i=0; i < p; i++) {
-        cout << " Parameter " << i+1 << " : " << pa.at(i) << endl;
+    std::cout << std::endl;
+    std::cout << "  -- System info -- " << std::endl;
+    std::cout << " Number of particles  : " << m_numberOfParticles << std::endl;
+    std::cout << " Number of dimensions : " << m_numberOfDimensions << std::endl;
+    std::cout << " Number of Metropolis steps run : 10^" << std::log10(m_numberOfMetropolisSteps) << std::endl;
+    std::cout << " Step length used : " << m_stepLength << std::endl;
+    std::cout << " Ratio of accepted steps: " << ((double)m_numberOfAcceptedSteps) / ((double)m_numberOfMetropolisSteps) << std::endl;
+    std::cout << " Elapsed time: " << m_elapsedTime.count() << " s\n";
+    std::cout << std::endl;
+    std::cout << "  -- Wave function parameters -- " << std::endl;
+    std::cout << " Number of parameters : " << m_numberOfParameters << std::endl;
+    for (unsigned int i = 0; i < m_numberOfParameters; i++) {
+        std::cout << " Parameter " << i + 1 << " : " << system.getWaveFunctionParameters()[i] << std::endl;
     }
-    cout << endl;
-    cout << "  -- Results -- " << endl;
-    cout << " Energy : " << m_energy << endl;
-    cout << " Variance : " << m_variance << endl;
-    cout << " Error : " << m_error << endl;
-    cout << endl;
+    std::cout << std::endl;
+    std::cout << "  -- Results -- " << std::endl;
+    std::cout << " Energy : " << m_energy << std::endl;
+    std::cout << " Variance : " << m_variance << std::endl;
+    std::cout << " Error : " << m_error << std::endl;
+    std::cout << std::endl;
 }
 
 void Sampler::printOutputToFile(System& system, std::ofstream& outs) {
-    auto pa = system.getWaveFunctionParameters();
-    auto p = pa.size();
-
-    outs << endl;
-    outs << "#  -- System info -- " << endl;
-    outs << "# Number of particles  : " << m_numberOfParticles << endl;
-    outs << "# Number of dimensions : " << m_numberOfDimensions << endl;
-    outs << "# Number of Metropolis steps run : 10^" << std::log10(m_numberOfMetropolisSteps) << endl;
-    outs << "# Step length used : " << m_stepLength << endl;
-    outs << "# Ratio of accepted steps: " << ((double)m_numberOfAcceptedSteps) / ((double)m_numberOfMetropolisSteps) << endl;
-    outs << "# Elapsed time: " << m_watch_end - m_watch_start << " s\n";
-    outs << endl;
-    outs << "#  -- Wave function parameters -- " << endl;
-    outs << "# Number of parameters : " << p << "\n#";
-    for (unsigned int i = 0; i < p; i++) {
-        outs << " p[" << i <<  "],  \t ";
+    outs << std::endl;
+    outs << "#  -- System info -- " << std::endl;
+    outs << "# Number of particles  : " << m_numberOfParticles << std::endl;
+    outs << "# Number of dimensions : " << m_numberOfDimensions << std::endl;
+    outs << "# Number of Metropolis steps run : 10^" << std::log10(m_numberOfMetropolisSteps) << std::endl;
+    outs << "# Step length used : " << m_stepLength << std::endl;
+    outs << "# Ratio of accepted steps: " << ((double)m_numberOfAcceptedSteps) / ((double)m_numberOfMetropolisSteps) << std::endl;
+    outs << "# Elapsed time: " << m_elapsedTime.count() << " s\n";
+    outs << std::endl;
+    outs << "#  -- Wave function parameters -- " << std::endl;
+    outs << "# Number of parameters : " << m_numberOfParameters << "\n#";
+    for (unsigned int i = 0; i < m_numberOfParameters; i++) {
+        outs << " p[" << i << "],  \t ";
     }
     outs << " energy,  \t  variance,  \t  error\n";
-    for (unsigned int i = 0; i < p; i++) {
-        outs << pa.at(i) << ", \t";
+    for (unsigned int i = 0; i < m_numberOfParameters; i++) {
+        outs << system.getWaveFunctionParameters()[i] << ", \t";
     }
     outs << std::setprecision(10);
-    outs << m_energy << ", \t" << m_variance << ", \t" << m_error << endl;
+    outs << m_energy << ", \t" << m_variance << ", \t" << m_error << std::endl;
 }
 
+void Sampler::logOutput(System& system, std::ofstream& outs) {
+    unsigned int prec = 7, width = 16;
+    outs << std::scientific << std::setprecision(prec);
+    for (unsigned int i = 0; i < m_numberOfParameters; i++) {
+        outs << std::setw(width) << system.getWaveFunctionParameters()[i] << ",";
+    }
+    outs << std::scientific << std::setprecision(prec)
+        << std::setw(width) << m_energy << ","
+        << std::setw(width) << m_variance << ","
+        << std::setw(width) << m_error << ","
+        << std::setw(width) << m_elapsedTime.count() << ","
+        << std::setw(width) << ((double)m_numberOfAcceptedSteps) / ((double)m_numberOfMetropolisSteps)
+        << std::endl;
+}
 
 void Sampler::computeAverages() {
     /* Compute the averages of the sampled quantities.
@@ -110,4 +125,10 @@ void Sampler::computeAverages() {
     m_energySQ = m_cumulativeEnergySQ / m_numberOfMetropolisSteps;
     m_variance = m_energySQ - sq(m_energy);
     m_error = sqrt(m_variance);
+    m_elapsedTime = m_watch_end - m_watch_start;
+    for (unsigned int i = 0; i < m_numberOfParameters; i++) {
+        m_covariance[i] /= m_numberOfMetropolisSteps;   // calculate  <O E>
+        m_opO[i] /= m_numberOfMetropolisSteps;          // calculate  <O>
+        m_covariance[i] -= m_opO[i] * m_energy;         // subtract  <O> <E>
+    }
 }

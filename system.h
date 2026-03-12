@@ -21,6 +21,7 @@ public:
             unsigned int numberOfMetropolisSteps);
 
     double computeLocalEnergy();
+    double computeParamDerivativeLn(unsigned int param_idx);
     const std::vector<double>& getWaveFunctionParameters();
 
 private:

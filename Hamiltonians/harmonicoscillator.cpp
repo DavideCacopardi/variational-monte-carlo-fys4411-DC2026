@@ -32,7 +32,7 @@ double HarmonicOscillator::computeLocalEnergy(
     }
     else {
         kineticEnergy = -0.5 * waveFunction.computeNumericalDoubleDerivative(particles) / waveFunction.evaluate(particles);
-    }   -0.5 * waveFunction.computeNumericalDoubleDerivative(particles) / waveFunction.evaluate(particles);
+    } 
 
     double sum = 0;
     for (unsigned int i = 0; i < particles.size(); i++) {

@@ -1,5 +1,7 @@
 #include <memory>
 #include <cmath>
+#include <stdexcept>
+#include <iostream>
 #include <cassert>
 
 #include "../common.h"
@@ -10,22 +12,19 @@
 
 using namespace CommonUtils;
 
-EllipticGaussian::EllipticGaussian(double alpha, double beta) {
-    assert(alpha >= 0 && beta >= 0);
-    m_numberOfParameters = 2;
-    m_parameters.reserve(2);
-    m_parameters.push_back(alpha);
-    m_parameters.push_back(beta);
+EllipticGaussian::EllipticGaussian(double alpha, double beta)
+    : WaveFunction(2, { alpha, beta }) {
+    if (alpha < 0 || beta < 0) throw std::invalid_argument("alpha and beta must be non-negative");
 }
 
 double EllipticGaussian::evaluate(std::vector<std::unique_ptr<class Particle>>& particles) {
-    /* You need to implement a Gaussian wave function here. The positions of
-     * the particles are accessible through the particle[i]->getPosition()
-     * function.
-     */
+    return exp(evaluateLn(particles));
+}
+
+double EllipticGaussian::evaluateLn(std::vector<std::unique_ptr<class Particle>>& particles) {
     long double sum = 0;
 
-    // sum all coordinates squared
+    // sum all coordinates squared:  Σ_i [x_i² + y_i² + βz_i²]
     for (unsigned int i = 0; i < particles.size(); i++) {
         for (unsigned int j = 0; j < m_NDIM; j++) {
             if (j == 2)
@@ -35,8 +34,34 @@ double EllipticGaussian::evaluate(std::vector<std::unique_ptr<class Particle>>& 
         }
     }
 
-    // assumes the first parameter is the alpha value
-    return exp(-m_parameters[0] * sum);
+    return -m_parameters[0] * sum;  // -α * sum
+}
+
+double EllipticGaussian::computeParamDerivativeLn(std::vector<std::unique_ptr<class Particle>>& particles, unsigned int param_idx) {
+    long double sum = 0;
+
+    if (param_idx == 0) {       // derivative wrt alpha
+        // sum all coordinates squared:  Σ_i [x_i² + y_i² + βz_i²]
+        for (unsigned int i = 0; i < particles.size(); i++) {
+            for (unsigned int j = 0; j < m_NDIM; j++) {
+                if (j == 2)
+                    sum += m_parameters[1] * sq(particles[i]->getPosition()[j]);
+                else
+                    sum += sq(particles[i]->getPosition()[j]);
+            }
+        }
+
+        return -sum;
+    }
+    else if (param_idx == 1) {  // derivative wrt beta
+        // sum Σ_i z_i²
+        for (unsigned int i = 0; i < particles.size(); i++) {
+            sum += sq(particles[i]->getPosition()[2]);
+        }
+        return -m_parameters[0] * sum;  // -α * sum
+    }
+
+    throw std::invalid_argument("Invalid param_idx.");
 }
 
 double EllipticGaussian::computeDoubleDerivative(std::vector<std::unique_ptr<class Particle>>& particles) {
@@ -84,9 +109,9 @@ std::vector<double> EllipticGaussian::computeQuantumForce(std::vector<std::uniqu
     std::vector<double> qForce = std::vector<double>(m_NDIM);
 
     double prod = 1;
-    for (int i = 0; i < particles.size(); i++) {
+    for (unsigned int i = 0; i < particles.size(); i++) {
         if (i == particle_idx) continue;
-        
+
         double rad_sq = 0;      // x² + y² + βz² 
         for (unsigned int j = 0; j < m_NDIM; j++) {
             if (j == 2) {
@@ -114,7 +139,7 @@ std::vector<double> EllipticGaussian::computeQuantumForce(std::vector<std::uniqu
         double deriv = -2 * alpha * particles[particle_idx]->getPosition()[i] * exp(-alpha * rad_sq);
         if (i == 2)
             deriv *= beta;
-        
+
         qForce[i] = prod * deriv;
     }
 

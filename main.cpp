@@ -3,8 +3,9 @@
 #include <vector>
 #include <memory>
 #include <cassert>
-#include <ctime>
 #include <cstring>
+#include <armadillo>
+#include <nlopt.hpp>
 
 #include "system.h"
 #include "common.h"
@@ -17,6 +18,7 @@
 #include "Math/random.h"
 #include "particle.h"
 #include "sampler.h"
+#include "VMCOptimizer.h"
 
 using namespace std;
 
@@ -37,7 +39,8 @@ vector<vector<double>> readParameters(ifstream& ins, unsigned int numberOfParame
     return params;
 }
 
-int main(int argc, char* argv[]) {
+/*
+int old_main(int argc, char* argv[]) {
     bool analytical_ifAvailable = true;
     if (argc == 2) {
         if (strcmp(argv[1], "true") == 0) {
@@ -66,8 +69,7 @@ int main(int argc, char* argv[]) {
     double stepParameter = timeStep;
     // double alpha = 0.5; // Variational parameter.
     // double beta = 1; // Variational parameter.
-    
-    
+
     ifstream infile("iofiles/input.csv");
     vector<vector<double>> parameters = readParameters(infile, numberOfParameters);
     infile.close();
@@ -112,5 +114,44 @@ int main(int argc, char* argv[]) {
     }
     outputFile.close();
 
+    return 0;
+}
+*/
+
+int main(int argc, char* argv[]) {
+    unsigned int numberOfDimensions = 3;
+    unsigned int numberOfParticles = 1;
+    unsigned int numberOfMetropolisSteps = (unsigned int) 1e6;
+    unsigned int numberOfEquilibrationSteps = (unsigned int) 1e5;
+    double omega = 1.0;
+    double timeStep = 0.05;
+    double BFGS_tol = 1e-4;
+    // int seed = 2023;
+    int seed = std::chrono::system_clock::now().time_since_epoch().count();
+
+    VMCOptimizer optimizer(
+        numberOfDimensions,
+        numberOfParticles,
+        // Hamiltonian factory — captures omega
+        [omega]() { return std::make_unique<HarmonicOscillator>(omega); },
+        // WaveFunction factory — receives params from BFGS
+        [](const std::vector<double>& p) { return std::make_unique<EllipticGaussian>(p[0], p[1]); },
+        numberOfMetropolisSteps,
+        numberOfEquilibrationSteps,
+        timeStep,
+        BFGS_tol,
+        seed,
+        "./iofiles/details_results.csv",
+        "./iofiles/log.csv"
+        );
+
+    std::vector<double> initialParams = { 0.75, 0.4 }; // initial alpha, beta
+
+    std::chrono::high_resolution_clock::time_point watch_start = std::chrono::high_resolution_clock::now();
+    std::vector<double> optimalParams = optimizer.optimize(initialParams);
+    std::chrono::high_resolution_clock::time_point watch_end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsedTime = watch_end - watch_start;
+
+    cout << "\nDone (in " << elapsedTime.count() << " s).\nExiting.\n";
     return 0;
 }

@@ -1,5 +1,6 @@
 #include <memory>
 #include <cmath>
+#include <stdexcept>
 #include <cassert>
 
 #include "simplegaussian.h"
@@ -11,11 +12,8 @@
 using namespace CommonUtils;
 
 SimpleGaussian::SimpleGaussian(double alpha)
-{
-    assert(alpha >= 0);
-    m_numberOfParameters = 1;
-    m_parameters.reserve(1);
-    m_parameters.push_back(alpha);
+    : WaveFunction(1, { alpha }) {
+    if (alpha < 0) throw std::invalid_argument("alpha must be non-negative");
 }
 
 double SimpleGaussian::evaluate(std::vector<std::unique_ptr<class Particle>>& particles) {
@@ -45,7 +43,7 @@ double SimpleGaussian::computeDoubleDerivative(std::vector<std::unique_ptr<class
      * This quantity is needed to compute the (local) energy (consider the
      * Schrödinger equation to see how the two are related).
      */
-    
+
     double alpha = m_parameters[0];
     unsigned int numberOfDimensions = particles[0]->getNumberOfDimensions();
 
@@ -55,7 +53,7 @@ double SimpleGaussian::computeDoubleDerivative(std::vector<std::unique_ptr<class
         for (unsigned int j = 0; j < numberOfDimensions; j++) {
             rad_sq += sq(particles[i]->getPosition()[j]);
         }
-        
+
         double phi_i = exp(-alpha * rad_sq);
         double lapl_term = -2 * alpha * (numberOfDimensions - 2 * alpha * rad_sq) * phi_i;
 

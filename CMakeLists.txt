@@ -24,6 +24,10 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g")
 # -O0, -O1, -O2.
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
+# Find packages
+find_package(Armadillo REQUIRED)
+find_package(NLopt REQUIRED)
+
 # Add directories containing header-files
 include_directories(
     .
@@ -32,6 +36,7 @@ include_directories(
     Math
     WaveFunctions
     Solvers
+    ${ARMADILLO_INCLUDE_DIRS}
 )
 
 # Add sources from all directories
@@ -47,3 +52,5 @@ file(
 
 # Create executable called "vmc"
 add_executable(vmc ${SOURCES})
+
+target_link_libraries(vmc PRIVATE ${ARMADILLO_LIBRARIES} NLopt::nlopt)

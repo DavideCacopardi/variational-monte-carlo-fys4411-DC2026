@@ -11,13 +11,20 @@ public:
     int getNumberOfParameters() { return m_numberOfParameters; }
     const std::vector<double>& getParameters() { return m_parameters; }
     virtual double evaluate(std::vector<std::unique_ptr<class Particle>>& particles) = 0;
+    virtual double computeParamDerivativeLn(std::vector<std::unique_ptr<class Particle>>& particles, unsigned int param_idx) = 0;
     double computeNumericalDoubleDerivative(std::vector<std::unique_ptr<class Particle>>& particles);
     virtual bool hasAnalyticalDerivative() { return false; }
+    virtual std::vector<double> lowerBounds() const { return {}; }
+    virtual std::vector<double> upperBounds() const { return {}; }
     virtual double computeDoubleDerivative(std::vector<std::unique_ptr<class Particle>>& particles) = 0;
     virtual std::vector<double> computeQuantumForce(std::vector<std::unique_ptr<class Particle>>& particles, unsigned int particle_idx) = 0;
 
 protected:
     int m_numberOfParameters = 0;
     std::vector<double> m_parameters = std::vector<double>();
+
+    WaveFunction(int numberOfParameters, std::vector<double> parameters)
+        : m_numberOfParameters(numberOfParameters)
+        , m_parameters(std::move(parameters)) {}
 };
 
