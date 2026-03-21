@@ -9,17 +9,15 @@
 
 using namespace CommonUtils;
 
-HarmonicOscillator::HarmonicOscillator(double omega)
-{
-    assert(omega > 0);
+HarmonicOscillator::HarmonicOscillator(double omega) {
+    if (omega <= 0) throw std::invalid_argument("omega needs to be a positive value");
     m_omega = omega;
 }
 
 double HarmonicOscillator::computeLocalEnergy(
-            class WaveFunction& waveFunction,
-            std::vector<std::unique_ptr<class Particle>>& particles
-        )
-{
+    class WaveFunction& waveFunction,
+    std::vector<std::unique_ptr<class Particle>>& particles
+) {
     /* Here, you need to compute the kinetic and potential energies.
      * Access to the wave function methods can be done using the dot notation
      * for references, e.g., wavefunction.computeDoubleDerivative(particles),
@@ -32,7 +30,7 @@ double HarmonicOscillator::computeLocalEnergy(
     }
     else {
         kineticEnergy = -0.5 * waveFunction.computeNumericalDoubleDerivative(particles) / waveFunction.evaluate(particles);
-    } 
+    }
 
     double sum = 0;
     for (unsigned int i = 0; i < particles.size(); i++) {
@@ -41,6 +39,6 @@ double HarmonicOscillator::computeLocalEnergy(
         }
     }
     double potentialEnergy = 0.5 * sq(m_omega) * sum; // * m
-    
+
     return kineticEnergy + potentialEnergy;
 }

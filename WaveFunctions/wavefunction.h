@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <vector>
+#include <cmath>
 
 
 class WaveFunction {
@@ -10,14 +11,27 @@ public:
 
     int getNumberOfParameters() { return m_numberOfParameters; }
     const std::vector<double>& getParameters() { return m_parameters; }
-    virtual double evaluate(std::vector<std::unique_ptr<class Particle>>& particles) = 0;
-    virtual double computeParamDerivativeLn(std::vector<std::unique_ptr<class Particle>>& particles, unsigned int param_idx) = 0;
-    double computeNumericalDoubleDerivative(std::vector<std::unique_ptr<class Particle>>& particles);
-    virtual bool hasAnalyticalDerivative() { return false; }
     virtual std::vector<double> lowerBounds() const { return {}; }
     virtual std::vector<double> upperBounds() const { return {}; }
-    virtual double computeDoubleDerivative(std::vector<std::unique_ptr<class Particle>>& particles) = 0;
-    virtual std::vector<double> computeQuantumForce(std::vector<std::unique_ptr<class Particle>>& particles, unsigned int particle_idx) = 0;
+
+    virtual double evaluate(std::vector<std::unique_ptr<class Particle>>& particles) = 0;
+    virtual double evaluateLn(std::vector<std::unique_ptr<class Particle>>& particles) {
+        return log(evaluate(particles));
+    }
+    virtual double computeDoubleDerivative(std::vector<std::unique_ptr<class Particle>>& particles) {
+        return computeNumericalDoubleDerivative(particles);
+    };
+    virtual double computeParamDerivativeLn(std::vector<std::unique_ptr<class Particle>>& particles, unsigned int param_idx) {
+        return computeNumericalParamDerivativeLn(particles, param_idx);
+    };
+    virtual std::vector<double> computeQuantumForce(std::vector<std::unique_ptr<class Particle>>& particles, unsigned int particle_idx) {
+        return computeNumericalQuantumForce(particles, particle_idx);
+    };
+    
+    virtual bool hasAnalyticalDerivative() { return false; }
+    double computeNumericalDoubleDerivative(std::vector<std::unique_ptr<class Particle>>& particles);
+    double computeNumericalParamDerivativeLn(std::vector<std::unique_ptr<class Particle>>& particles, unsigned int param_idx);
+    std::vector<double> computeNumericalQuantumForce(std::vector<std::unique_ptr<class Particle>>& particles, unsigned int particle_idx);
 
 protected:
     int m_numberOfParameters = 0;

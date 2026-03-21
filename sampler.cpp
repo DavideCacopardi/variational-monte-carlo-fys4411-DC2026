@@ -40,11 +40,14 @@ Sampler::Sampler(
 }
 
 
-void Sampler::sample(bool acceptedStep, System* system) {
+void Sampler::sample(bool acceptedStep, System* system, std::fstream* energiesOut) {
     /* Here you should sample all the interesting things you want to measure.
      * Note that there are (way) more than the single one here currently.
      */
     double localEnergy = system->computeLocalEnergy();
+    if (energiesOut != nullptr) {
+        *energiesOut << localEnergy << '\n';
+    }
     m_cumulativeEnergy += localEnergy;
     m_cumulativeEnergySQ += sq(localEnergy);
     for (unsigned int i = 0; i < m_numberOfParameters; i++) {
@@ -104,7 +107,7 @@ void Sampler::printOutputToFile(System& system, std::ofstream& outs) {
 }
 
 void Sampler::logOutput(System& system, std::ofstream& outs) {
-    unsigned int prec = 7, width = 16;
+    const unsigned int prec = 7, width = 16;
     outs << std::scientific << std::setprecision(prec);
     for (unsigned int i = 0; i < m_numberOfParameters; i++) {
         outs << std::setw(width) << system.getWaveFunctionParameters()[i] << ",";
@@ -124,7 +127,7 @@ void Sampler::computeAverages() {
     m_energy = m_cumulativeEnergy / m_numberOfMetropolisSteps;
     m_energySQ = m_cumulativeEnergySQ / m_numberOfMetropolisSteps;
     m_variance = m_energySQ - sq(m_energy);
-    m_error = sqrt(m_variance);
+    m_error = sqrt(m_variance / m_numberOfMetropolisSteps);
     m_elapsedTime = m_watch_end - m_watch_start;
     for (unsigned int i = 0; i < m_numberOfParameters; i++) {
         m_covariance[i] /= m_numberOfMetropolisSteps;   // calculate  <O E>

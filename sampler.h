@@ -13,12 +13,13 @@ public:
         unsigned int numberOfMetropolisSteps);
 
 
-    void sample(bool acceptedStep, class System* system);
+    void sample(bool acceptedStep, class System* system, std::fstream* energiesOut = nullptr);
     void printOutputToTerminal(class System& system);
     void printOutputToFile(class System& system, std::ofstream& outs);
     void logOutput(System& system, std::ofstream& outs);
     void computeAverages();
     double getEnergy() { return m_energy; }
+    double getError() { return m_error; }
     double getCovariance(unsigned int param_idx) { return m_covariance[param_idx]; }
     void startStopwatch();
     double stopStopwatch();

@@ -108,39 +108,10 @@ std::vector<double> EllipticGaussian::computeQuantumForce(std::vector<std::uniqu
     double beta = m_parameters[1];
     std::vector<double> qForce = std::vector<double>(m_NDIM);
 
-    double prod = 1;
-    for (unsigned int i = 0; i < particles.size(); i++) {
-        if (i == particle_idx) continue;
-
-        double rad_sq = 0;      // x² + y² + βz² 
-        for (unsigned int j = 0; j < m_NDIM; j++) {
-            if (j == 2) {
-                rad_sq += beta * sq(particles[i]->getPosition()[j]);
-            }
-            else {
-                rad_sq += sq(particles[i]->getPosition()[j]);
-            }
-        }
-
-        prod *= exp(-alpha * rad_sq);
-    }
-
     for (unsigned int i = 0; i < m_NDIM; i++) {
-        double rad_sq = 0;      // x² + y² + βz² 
-        for (unsigned int j = 0; j < m_NDIM; j++) {
-            if (j == 2) {
-                rad_sq += beta * sq(particles[particle_idx]->getPosition()[j]);
-            }
-            else {
-                rad_sq += sq(particles[particle_idx]->getPosition()[j]);
-            }
-        }
-
-        double deriv = -2 * alpha * particles[particle_idx]->getPosition()[i] * exp(-alpha * rad_sq);
+        qForce[i] = -4 * alpha * particles[particle_idx]->getPosition()[i];
         if (i == 2)
-            deriv *= beta;
-
-        qForce[i] = prod * deriv;
+            qForce[i] *= beta;
     }
 
     return qForce;

@@ -1,6 +1,7 @@
 #include <memory>
 #include <iostream>
 #include <iomanip>
+#include <tuple>
 #include <nlopt.hpp>
 
 #include "VMCOptimizer.h"
@@ -33,7 +34,9 @@ VMCOptimizer::VMCOptimizer(unsigned int numberOfDimensions,
 , m_BFGS_tol(BFGS_tol)
 , m_seed(seed)
 , m_outfile(outfile_name)
-, m_logfile(logfile_name) {}
+, m_logfile(logfile_name) {
+    m_rep_a = m_hamiltonianFactory()->getRepulsiveFactor();
+}
 
 VMCOptimizer::~VMCOptimizer() {
     m_outfile.close();
@@ -45,8 +48,8 @@ double VMCOptimizer::computeMC(const std::vector<double>& params, std::vector<do
     std::cout << "\rComputing MC #" << count++ << std::flush;
 
     // rebuild system with current params
-    auto rng = std::make_unique<Random>(m_seed);      // !!! check this
-    auto particles = setupRandomUniformInitialState(m_timeStep, m_numberOfDimensions, m_numberOfParticles, *rng);
+    auto rng = std::make_unique<Random>(m_seed++);      // !!! check this
+    auto particles = setupRandomUniformInitialState(m_numberOfDimensions, m_numberOfParticles, *rng, m_rep_a);
     auto waveFun = m_waveFunctionFactory(params);
     auto system = std::make_unique<System>(
         m_hamiltonianFactory(),
@@ -64,31 +67,37 @@ double VMCOptimizer::computeMC(const std::vector<double>& params, std::vector<do
         }
     }
 
-    // finite difference gradient if grad is requested
-    // if (!grad.empty()) {
-    //     double h = 1e-4;
-    //     for (unsigned int i = 0; i < params.size(); i++) {
-    //         std::vector<double> paramsPlus = params;
-    //         std::vector<double> paramsMinus = params;
-    //         paramsPlus[i] += h;
-    //         paramsMinus[i] -= h;
-    //         std::vector<double> dummyGrad; // empty = no grad needed
-    //         double ePlus  = computeMC(paramsPlus,  dummyGrad);
-    //         double eMinus = computeMC(paramsMinus, dummyGrad);
-    //         grad[i] = (ePlus - eMinus) / (2 * h);
-    //     }
-    // }
-
-    // sampler->printOutputToTerminal(*system);
     sampler->logOutput(*system, m_logfile);
 
     return sampler->getEnergy();
 }
 
+std::pair<double, double> VMCOptimizer::finalMC(const std::vector<double>& params, unsigned int log2steps, std::fstream* energiesOut) {
+    // build system with current params
+    unsigned int numberOfMetropolisSteps = pow(2, log2steps);
+    auto rng = std::make_unique<Random>(m_seed++);      // !!! check this
+    auto particles = setupRandomUniformInitialState(m_numberOfDimensions, m_numberOfParticles, *rng, m_rep_a);
+    auto waveFun = m_waveFunctionFactory(params);
+    auto system = std::make_unique<System>(
+        m_hamiltonianFactory(),
+        std::move(waveFun),
+        std::make_unique<MetropolisHastings>(std::move(rng), true),
+        std::move(particles));
+
+    system->runEquilibrationSteps(m_timeStep, m_numberOfEquilibrationSteps);
+    *energiesOut << std::scientific << std::setprecision(9);
+    auto sampler = system->runMetropolisSteps(m_timeStep, numberOfMetropolisSteps, energiesOut);
+    energiesOut->seekg(0);
+
+    // sampler->printOutputToTerminal(*system);
+
+    return std::make_pair(sampler->getEnergy(), sampler->getError());
+}
+
 std::vector<double> VMCOptimizer::optimize(std::vector<double> initialParams) {
     // print log header
     m_logfile << "#";
-    unsigned int width = 17;
+    const unsigned int width = 17;
     for (unsigned int i = 0; i < initialParams.size(); i++) {
         std::string temp = "p[" + std::to_string(i) + "],";
         m_logfile << std::setw(width - (i == 0)) << temp;
@@ -107,9 +116,27 @@ std::vector<double> VMCOptimizer::optimize(std::vector<double> initialParams) {
     }
     lib_optimizer.set_min_objective(nloptObjective, this);
     lib_optimizer.set_xtol_rel(m_BFGS_tol);
+    lib_optimizer.set_maxeval(400);         // max number of evaluations
+    lib_optimizer.set_maxtime(3600.0);
 
     double minEnergy;
-    lib_optimizer.optimize(initialParams, minEnergy);
+    try {
+        lib_optimizer.optimize(initialParams, minEnergy);
+    }
+    catch (const std::runtime_error& e) {
+        std::cout << "\nNLopt failed: " << e.what() << std::endl;
+        std::cout << "Last energy: " << minEnergy << std::endl;
+        std::cout << "Last params: ";
+        for (auto p : initialParams) std::cout << p << " ";
+
+        m_outfile << "#  -- ERROR -- ";
+        m_outfile << "\n# NLopt failed: " << e.what();
+        m_outfile << "\n# Last energy: " << minEnergy;
+        m_outfile << "\n# Last params: ";
+        for (auto p : initialParams) m_outfile << p << " ";
+        m_outfile << std::endl << std::endl;
+        // throw;
+    }
 
     // print details and results
     {
@@ -124,6 +151,8 @@ std::vector<double> VMCOptimizer::optimize(std::vector<double> initialParams) {
         for (unsigned int i = 0; i < initialParams.size(); i++) {
             m_outfile << initialParams[i] << ", \t";
         }
+        m_outfile << std::endl;
+        std::cout << std::endl;
     }
 
     return initialParams; // NLopt overwrites this with the optimal params

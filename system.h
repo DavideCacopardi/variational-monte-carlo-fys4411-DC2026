@@ -7,18 +7,19 @@
 class System {
 public:
     System(
-            std::unique_ptr<class Hamiltonian> hamiltonian,
-            std::unique_ptr<class WaveFunction> waveFunction,
-            std::unique_ptr<class MonteCarlo> solver,
-            std::vector<std::unique_ptr<class Particle>> particles);
+        std::unique_ptr<class Hamiltonian> hamiltonian,
+        std::unique_ptr<class WaveFunction> waveFunction,
+        std::unique_ptr<class MonteCarlo> solver,
+        std::vector<std::unique_ptr<class Particle>> particles);
 
     unsigned int runEquilibrationSteps(
-            double stepParameter,
-            unsigned int numberOfEquilibrationSteps);
+        double stepParameter,
+        unsigned int numberOfEquilibrationSteps);
 
     std::unique_ptr<class Sampler> runMetropolisSteps(
-            double stepParameter,
-            unsigned int numberOfMetropolisSteps);
+        double stepParameter,
+        unsigned int numberOfMetropolisSteps,
+        std::fstream* energiesOut = nullptr);
 
     double computeLocalEnergy();
     double computeParamDerivativeLn(unsigned int param_idx);

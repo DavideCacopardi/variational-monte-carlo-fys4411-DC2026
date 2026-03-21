@@ -8,8 +8,8 @@
 
 
 std::vector<std::unique_ptr<Particle>> setupRandomUniformInitialState(
-            double stepLength,
-            unsigned int numberOfDimensions,
-            unsigned int numberOfParticles,
-            Random& randomEngine
-            );
+    unsigned int numberOfDimensions,
+    unsigned int numberOfParticles,
+    Random& randomEngine,
+    double rep_a = 0
+);

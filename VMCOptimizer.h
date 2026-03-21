@@ -2,12 +2,13 @@
 #include <vector>
 #include <functional>
 #include <fstream>
+#include <tuple>
 
 class VMCOptimizer {
 public:
     using HamiltonianFactory = std::function<std::unique_ptr<class Hamiltonian>()>;
     using WaveFunctionFactory = std::function<std::unique_ptr<class WaveFunction>(const std::vector<double>&)>;
-    
+
     VMCOptimizer(unsigned int numberOfDimensions,
         unsigned int numberOfParticles,
         HamiltonianFactory hamiltonianFactory,
@@ -22,6 +23,7 @@ public:
 
     // Run BFGS optimization starting from initial parameters
     std::vector<double> optimize(std::vector<double> initialParams);
+    std::pair<double, double> finalMC(const std::vector<double>& params, unsigned int log2steps, std::fstream* energiesOut);
 
 private:
     // Runs VMC for given params and returns energy (+ fills grad)
@@ -35,7 +37,6 @@ private:
     }
 
     // MC settings
-    private:
     unsigned int m_numberOfDimensions;
     unsigned int m_numberOfParticles;
     HamiltonianFactory m_hamiltonianFactory;
@@ -44,6 +45,7 @@ private:
     unsigned int m_numberOfEquilibrationSteps;
     double m_timeStep;
     double m_BFGS_tol;
+    double m_rep_a = 0.0;
     int m_seed;
     std::ofstream m_outfile;
     std::ofstream m_logfile;

@@ -38,7 +38,8 @@ unsigned int System::runEquilibrationSteps(double stepParameter, unsigned int nu
     return acceptedSteps;
 }
 
-std::unique_ptr<class Sampler> System::runMetropolisSteps(double stepParameter, unsigned int numberOfMetropolisSteps) {
+std::unique_ptr<class Sampler> System::runMetropolisSteps(double stepParameter,
+    unsigned int numberOfMetropolisSteps, std::fstream* energiesOut) {
     auto sampler = std::make_unique<Sampler>(
         m_numberOfParticles,
         m_numberOfDimensions,
@@ -54,7 +55,7 @@ std::unique_ptr<class Sampler> System::runMetropolisSteps(double stepParameter, 
         /* Here you should sample the energy (and maybe other things) using the
          * sampler instance of the Sampler class.
          */
-        sampler->sample(acceptedStep, this);
+        sampler->sample(acceptedStep, this, energiesOut);
     }
 
     sampler->computeAverages();

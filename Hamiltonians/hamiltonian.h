@@ -11,6 +11,7 @@ public:
             std::vector<std::unique_ptr<class Particle>>& particles
     ) = 0;
     void set_analytic_ifAvailable(bool val);
+    virtual double getRepulsiveFactor() const { return 0.0; }
 protected:
     bool m_analytic_ifAvailable = true;
 };
