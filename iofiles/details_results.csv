@@ -1,14 +1,4 @@
-#  -- ERROR -- 
 # NLopt failed: nlopt failure
-# Last energy: 15.008
-# Last params: 0.4773 1.12534 
-
-#  -- System info -- 
-# Number of particles  : 10
-# Number of dimensions : 3
-# Number of Metropolis steps run : 10^5
-# Time step used : 0.1
-# BFGS tolerance used : 1e-05
-
-# Optimal energy: 15.008
-# Optimal parameters: 0.47729996, 	1.1253365, 	
+# Last energy: 4.49941
+# Optimal energy: 4.49941
+# Optimal parameters: 0.49629437, 	0.99662347, 	

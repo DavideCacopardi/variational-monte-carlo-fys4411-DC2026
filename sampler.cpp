@@ -40,7 +40,7 @@ Sampler::Sampler(
 }
 
 
-void Sampler::sample(bool acceptedStep, System* system, std::fstream* energiesOut) {
+void Sampler::sample(bool acceptedStep, System* system, std::ofstream* energiesOut) {
     /* Here you should sample all the interesting things you want to measure.
      * Note that there are (way) more than the single one here currently.
      */
@@ -106,11 +106,11 @@ void Sampler::printOutputToFile(System& system, std::ofstream& outs) {
     outs << m_energy << ", \t" << m_variance << ", \t" << m_error << std::endl;
 }
 
-void Sampler::logOutput(System& system, std::ofstream& outs) {
+void Sampler::logOutput(const std::vector<double>& params, std::ofstream& outs) {
     const unsigned int prec = 7, width = 16;
     outs << std::scientific << std::setprecision(prec);
     for (unsigned int i = 0; i < m_numberOfParameters; i++) {
-        outs << std::setw(width) << system.getWaveFunctionParameters()[i] << ",";
+        outs << std::setw(width) << params[i] << ",";
     }
     outs << std::scientific << std::setprecision(prec)
         << std::setw(width) << m_energy << ","

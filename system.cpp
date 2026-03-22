@@ -39,7 +39,7 @@ unsigned int System::runEquilibrationSteps(double stepParameter, unsigned int nu
 }
 
 std::unique_ptr<class Sampler> System::runMetropolisSteps(double stepParameter,
-    unsigned int numberOfMetropolisSteps, std::fstream* energiesOut) {
+    unsigned int numberOfMetropolisSteps, std::ofstream* energiesOut) {
     auto sampler = std::make_unique<Sampler>(
         m_numberOfParticles,
         m_numberOfDimensions,

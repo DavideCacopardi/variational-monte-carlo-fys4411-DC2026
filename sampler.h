@@ -13,10 +13,10 @@ public:
         unsigned int numberOfMetropolisSteps);
 
 
-    void sample(bool acceptedStep, class System* system, std::fstream* energiesOut = nullptr);
+    void sample(bool acceptedStep, class System* system, std::ofstream* energiesOut = nullptr);
     void printOutputToTerminal(class System& system);
     void printOutputToFile(class System& system, std::ofstream& outs);
-    void logOutput(System& system, std::ofstream& outs);
+    void logOutput(const std::vector<double>& params, std::ofstream& outs);
     void computeAverages();
     double getEnergy() { return m_energy; }
     double getError() { return m_error; }

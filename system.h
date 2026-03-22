@@ -19,7 +19,7 @@ public:
     std::unique_ptr<class Sampler> runMetropolisSteps(
         double stepParameter,
         unsigned int numberOfMetropolisSteps,
-        std::fstream* energiesOut = nullptr);
+        std::ofstream* energiesOut = nullptr);
 
     double computeLocalEnergy();
     double computeParamDerivativeLn(unsigned int param_idx);

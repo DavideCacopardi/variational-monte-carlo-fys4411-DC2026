@@ -1,32 +1,23 @@
 #pragma once
 #include <vector>
-#include <functional>
 #include <fstream>
-#include <tuple>
+#include <string>
+
+#include "mcengine.h"
 
 class VMCOptimizer {
 public:
-    using HamiltonianFactory = std::function<std::unique_ptr<class Hamiltonian>()>;
-    using WaveFunctionFactory = std::function<std::unique_ptr<class WaveFunction>(const std::vector<double>&)>;
-
-    VMCOptimizer(unsigned int numberOfDimensions,
-        unsigned int numberOfParticles,
-        HamiltonianFactory hamiltonianFactory,
-        WaveFunctionFactory waveFunctionFactory,
+    VMCOptimizer(
+        MCEngine& engine,
         unsigned int numberOfMetropolisSteps,
-        unsigned int numberOfEquilibrationSteps,
-        double timeStep,
         double BFGS_tol,
-        const std::string& outfile_name,
-        const std::string& logfile_name,
-        int seed = 0);
-    ~VMCOptimizer();
+        std::ofstream* logfile = nullptr,
+        std::ofstream* outfile = nullptr,
+        std::ofstream* paramsfile = nullptr
+    );
 
     // Run BFGS optimization starting from initial parameters
     std::vector<double> optimize(std::vector<double> initialParams);
-    // Run one MC evaluation consisting of 2^log2steps steps
-    std::pair<double, double> finalMC(const std::vector<double>& params,
-        unsigned int log2steps, std::fstream* energiesOut);
 
 private:
     // Runs VMC for given params and returns energy (+ fills grad)
@@ -39,17 +30,11 @@ private:
         return static_cast<VMCOptimizer*>(data)->computeMC(params, grad);
     }
 
-    // MC settings
-    unsigned int m_numberOfDimensions;
-    unsigned int m_numberOfParticles;
-    HamiltonianFactory m_hamiltonianFactory;
-    WaveFunctionFactory m_waveFunctionFactory;
+    MCEngine& m_engine;
     unsigned int m_numberOfMetropolisSteps;
-    unsigned int m_numberOfEquilibrationSteps;
-    double m_timeStep;
     double m_BFGS_tol;
-    double m_rep_a = 0.0;
-    std::ofstream m_outfile;
-    std::ofstream m_logfile;
-    int m_seed;
+    std::ofstream* m_logfile;
+    std::ofstream* m_outfile;
+    std::ofstream* m_paramsfile;
+    unsigned int m_mcCount = 0;
 };
