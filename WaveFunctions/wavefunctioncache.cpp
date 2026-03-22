@@ -45,7 +45,6 @@ double WaveFunctionCache::computeNumericalLaplacian(
 
         for (unsigned int d = 0; d < ndim; d++) {
             double h = 1e-4 * std::max(1.0, std::abs(particles[p]->getPosition()[d]));
-            double h2 = h * h;
 
             // +h on particle p
             particles[p]->adjustPosition(h, d);
@@ -60,8 +59,8 @@ double WaveFunctionCache::computeNumericalLaplacian(
 
             // Laplacian in log space:
             // (d2 f) / f = d2 ln f + (d ln f)2
+            double d2Ln = (lnPlus - 2.0 * m_totalLn + lnMinus) / sq(h);
             double dLn  = (lnPlus - lnMinus) / (2.0 * h);
-            double d2Ln = (lnPlus - 2.0 * m_totalLn + lnMinus) / h2;
             sum += d2Ln + sq(dLn);
         }
     }
