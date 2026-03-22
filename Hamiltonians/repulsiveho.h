@@ -10,8 +10,9 @@ public:
     RepulsiveHO(double omega, double omega_z);
     RepulsiveHO(double omega, double omega_z, double repulsive_a_factor);
     double computeLocalEnergy(
-            class WaveFunction& waveFunction,
-            std::vector<std::unique_ptr<class Particle>>& particles
+        class WaveFunction& waveFunction,
+        std::vector<std::unique_ptr<class Particle>>& particles,
+        class WaveFunctionCache& cache
     );
     double getRepulsiveFactor() const override { return m_rep_a; }
 

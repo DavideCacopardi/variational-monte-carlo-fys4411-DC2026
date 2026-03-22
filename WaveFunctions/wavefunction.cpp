@@ -3,7 +3,7 @@
 #include <cassert>
 #include <iostream>
 
-#include "common.h"
+#include "../common.h"
 #include "wavefunction.h"
 #include "../system.h"
 #include "../particle.h"

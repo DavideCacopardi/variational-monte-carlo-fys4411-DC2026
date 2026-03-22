@@ -3,6 +3,8 @@
 #include <vector>
 #include <memory>
 
+#include "../WaveFunctions/wavefunctioncache.h"
+
 class MonteCarlo {
 public:
     MonteCarlo(std::unique_ptr<class Random> rng);
@@ -15,7 +17,9 @@ public:
         std::vector<std::unique_ptr<class Particle>>& particles) = 0;
     virtual bool hasAnalyticalOption() = 0;
     virtual bool get_preferAnalytic() = 0;
+    WaveFunctionCache& getCache() { return *m_cache; }
 
 protected:
     std::unique_ptr<class Random> m_rng;
+    std::unique_ptr<WaveFunctionCache> m_cache;
 };

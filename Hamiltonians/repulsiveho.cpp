@@ -9,6 +9,7 @@
 #include "repulsiveho.h"
 #include "../particle.h"
 #include "../WaveFunctions/wavefunction.h"
+#include "../WaveFunctions/wavefunctioncache.h"
 
 using namespace CommonUtils;
 
@@ -30,7 +31,8 @@ RepulsiveHO::RepulsiveHO(double omega, double omega_z, double repulsive_a_factor
 
 double RepulsiveHO::computeLocalEnergy(
     class WaveFunction& waveFunction,
-    std::vector<std::unique_ptr<class Particle>>& particles
+    std::vector<std::unique_ptr<class Particle>>& particles,
+    WaveFunctionCache& cache
 ) {
     // if a pair of particles is found at relative distance shorter than m_rep_a, then return +∞
     double dist = 0;
@@ -51,14 +53,16 @@ double RepulsiveHO::computeLocalEnergy(
         kineticEnergy = -0.5 * waveFunction.computeDoubleDerivative(particles) / waveFunction.evaluate(particles);
     }
     else {
-        kineticEnergy = -0.5 * waveFunction.computeNumericalDoubleDerivative(particles) / waveFunction.evaluate(particles);
+        // the following commented line is deprecated
+        // kineticEnergy = -0.5 * waveFunction.computeNumericalDoubleDerivative(particles) / waveFunction.evaluate(particles);
+        kineticEnergy = -0.5 * cache.computeNumericalLaplacian(particles, waveFunction);
     }
 
     double sum = 0;
     for (unsigned int i = 0; i < particles.size(); i++) {
         for (unsigned int j = 0; j < particles[0]->getNumberOfDimensions(); j++) {
             if (j == 2) {
-                sum += sq(m_omega_z * particles[i]->getPosition()[j]);               
+                sum += sq(m_omega_z * particles[i]->getPosition()[j]);
             }
             else {
                 sum += sq(m_omega * particles[i]->getPosition()[j]);

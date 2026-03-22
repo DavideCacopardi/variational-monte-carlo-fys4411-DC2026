@@ -6,6 +6,7 @@
 #include "harmonicoscillator.h"
 #include "../particle.h"
 #include "../WaveFunctions/wavefunction.h"
+#include "../WaveFunctions/wavefunctioncache.h"
 
 using namespace CommonUtils;
 
@@ -16,7 +17,8 @@ HarmonicOscillator::HarmonicOscillator(double omega) {
 
 double HarmonicOscillator::computeLocalEnergy(
     class WaveFunction& waveFunction,
-    std::vector<std::unique_ptr<class Particle>>& particles
+    std::vector<std::unique_ptr<class Particle>>& particles,
+    WaveFunctionCache& cache
 ) {
     /* Here, you need to compute the kinetic and potential energies.
      * Access to the wave function methods can be done using the dot notation
@@ -29,7 +31,9 @@ double HarmonicOscillator::computeLocalEnergy(
         kineticEnergy = -0.5 * waveFunction.computeDoubleDerivative(particles) / waveFunction.evaluate(particles);
     }
     else {
-        kineticEnergy = -0.5 * waveFunction.computeNumericalDoubleDerivative(particles) / waveFunction.evaluate(particles);
+        // the following commented line is deprecated
+        // kineticEnergy = -0.5 * waveFunction.computeNumericalDoubleDerivative(particles) / waveFunction.evaluate(particles);
+        kineticEnergy = -0.5 * cache.computeNumericalLaplacian(particles, waveFunction);
     }
 
     double sum = 0;

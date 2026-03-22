@@ -18,6 +18,8 @@ public:
     virtual double evaluateLn(std::vector<std::unique_ptr<class Particle>>& particles) {
         return log(evaluate(particles));
     }
+    virtual double computeParticleLn(std::vector<std::unique_ptr<Particle>>& particles,
+        unsigned int particle_idx) = 0;
     virtual double computeDoubleDerivative(std::vector<std::unique_ptr<class Particle>>& particles) {
         return computeNumericalDoubleDerivative(particles);
     };
@@ -27,7 +29,7 @@ public:
     virtual std::vector<double> computeQuantumForce(std::vector<std::unique_ptr<class Particle>>& particles, unsigned int particle_idx) {
         return computeNumericalQuantumForce(particles, particle_idx);
     };
-    
+
     virtual bool hasAnalyticalDerivative() { return false; }
     double computeNumericalDoubleDerivative(std::vector<std::unique_ptr<class Particle>>& particles);
     double computeNumericalParamDerivativeLn(std::vector<std::unique_ptr<class Particle>>& particles, unsigned int param_idx);

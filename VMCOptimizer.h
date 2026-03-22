@@ -17,13 +17,16 @@ public:
         unsigned int numberOfEquilibrationSteps,
         double timeStep,
         double BFGS_tol,
-        int seed, const std::string& outfile_name,
-        const std::string& logfile_name);
+        const std::string& outfile_name,
+        const std::string& logfile_name,
+        int seed = 0);
     ~VMCOptimizer();
 
     // Run BFGS optimization starting from initial parameters
     std::vector<double> optimize(std::vector<double> initialParams);
-    std::pair<double, double> finalMC(const std::vector<double>& params, unsigned int log2steps, std::fstream* energiesOut);
+    // Run one MC evaluation consisting of 2^log2steps steps
+    std::pair<double, double> finalMC(const std::vector<double>& params,
+        unsigned int log2steps, std::fstream* energiesOut);
 
 private:
     // Runs VMC for given params and returns energy (+ fills grad)
@@ -46,7 +49,7 @@ private:
     double m_timeStep;
     double m_BFGS_tol;
     double m_rep_a = 0.0;
-    int m_seed;
     std::ofstream m_outfile;
     std::ofstream m_logfile;
+    int m_seed;
 };

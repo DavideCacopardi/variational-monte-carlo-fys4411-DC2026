@@ -124,16 +124,17 @@ int old_main(int argc, char* argv[]) {
 
 int main(int argc, char* argv[]) {
     unsigned int numberOfDimensions = 3;
-    unsigned int numberOfParticles = 3;
+    unsigned int numberOfParticles = 10;
     unsigned int numberOfMetropolisSteps = (unsigned int)1e5;
     unsigned int numberOfEquilibrationSteps = (unsigned int)1e5;
     double omega = 1.0;
     double omega_z = 1;
     double repulsive_a_factor = 0;
-    double timeStep = 0.01;
+    double timeStep = 0.1;
     double BFGS_tol = 1e-5;
-    // int seed = 2023;
-    int seed = chrono::system_clock::now().time_since_epoch().count();
+    int seed = 0;
+    // if seed==0, then every Random instance is generated with a random seed,
+    // else every Random instance is generated with this specified seed
     chrono::high_resolution_clock::time_point watch_start, watch_end;
     chrono::duration<double> elapsedTime;
 
@@ -155,9 +156,9 @@ int main(int argc, char* argv[]) {
         numberOfEquilibrationSteps,
         timeStep,
         BFGS_tol,
-        seed,
         "./iofiles/details_results.csv",
-        "./iofiles/log.csv"
+        "./iofiles/log.csv",
+        seed
     );
     vector<double> initialParams = { 0.75, 1.2 }; // initial alpha, beta
     watch_start = std::chrono::high_resolution_clock::now();

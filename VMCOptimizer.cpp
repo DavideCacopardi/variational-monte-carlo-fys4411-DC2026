@@ -21,9 +21,9 @@ VMCOptimizer::VMCOptimizer(unsigned int numberOfDimensions,
     unsigned int numberOfEquilibrationSteps,
     double timeStep,
     double BFGS_tol,
-    int seed,
     const std::string& outfile_name,
-    const std::string& logfile_name
+    const std::string& logfile_name,
+    int seed
 ) : m_numberOfDimensions(numberOfDimensions)
 , m_numberOfParticles(numberOfParticles)
 , m_hamiltonianFactory(std::move(hamiltonianFactory))
@@ -32,9 +32,9 @@ VMCOptimizer::VMCOptimizer(unsigned int numberOfDimensions,
 , m_numberOfEquilibrationSteps(numberOfEquilibrationSteps)
 , m_timeStep(timeStep)
 , m_BFGS_tol(BFGS_tol)
-, m_seed(seed)
 , m_outfile(outfile_name)
-, m_logfile(logfile_name) {
+, m_logfile(logfile_name)
+, m_seed(seed) {
     m_rep_a = m_hamiltonianFactory()->getRepulsiveFactor();
 }
 
@@ -48,7 +48,8 @@ double VMCOptimizer::computeMC(const std::vector<double>& params, std::vector<do
     std::cout << "\rComputing MC #" << count++ << std::flush;
 
     // rebuild system with current params
-    auto rng = std::make_unique<Random>(m_seed++);      // !!! check this
+    auto rng = std::make_unique<Random>(
+        m_seed ? m_seed : std::chrono::system_clock::now().time_since_epoch().count());
     auto particles = setupRandomUniformInitialState(m_numberOfDimensions, m_numberOfParticles, *rng, m_rep_a);
     auto waveFun = m_waveFunctionFactory(params);
     auto system = std::make_unique<System>(
@@ -75,7 +76,8 @@ double VMCOptimizer::computeMC(const std::vector<double>& params, std::vector<do
 std::pair<double, double> VMCOptimizer::finalMC(const std::vector<double>& params, unsigned int log2steps, std::fstream* energiesOut) {
     // build system with current params
     unsigned int numberOfMetropolisSteps = pow(2, log2steps);
-    auto rng = std::make_unique<Random>(m_seed++);      // !!! check this
+    auto rng = std::make_unique<Random>(
+        m_seed ? m_seed : std::chrono::system_clock::now().time_since_epoch().count());
     auto particles = setupRandomUniformInitialState(m_numberOfDimensions, m_numberOfParticles, *rng, m_rep_a);
     auto waveFun = m_waveFunctionFactory(params);
     auto system = std::make_unique<System>(

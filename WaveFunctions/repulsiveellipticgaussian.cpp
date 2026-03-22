@@ -72,3 +72,34 @@ double RepEllipticGaussian::evaluateLn(std::vector<std::unique_ptr<class Particl
 
     return evaluateLn_noInteraction(particles) + intersum;  // -α * sum + sum of ln f
 }
+
+double RepEllipticGaussian::computeParticleLn(
+    std::vector<std::unique_ptr<Particle>>& particles,
+    unsigned int particle_idx) {
+    // single-particle term
+    double sum = 0;
+    for (unsigned int j = 0; j < m_NDIM; j++) {
+        if (j == 2) {
+            sum += m_parameters[1] * sq(particles[particle_idx]->getPosition()[j]);
+        }
+        else {
+            sum += sq(particles[particle_idx]->getPosition()[j]);
+        }
+    }
+    double single_part = -m_parameters[0] * sum;
+
+    // Jastrow terms for all pairs involving particle_idx
+    double jastrow_part = 0;
+    for (unsigned int k = 0; k < particles.size(); k++) {
+        if (k == particle_idx) continue;
+        double dist = 0.0;
+        for (unsigned int j = 0; j < m_NDIM; j++) {
+            dist += sq(particles[particle_idx]->getPosition()[j]
+                - particles[k]->getPosition()[j]);
+        }
+        dist = sqrt(dist);
+        if (dist <= m_rep_a) return -std::numeric_limits<double>::infinity();
+        jastrow_part += log(1.0 - m_rep_a / dist);
+    }
+    return single_part + jastrow_part;
+}

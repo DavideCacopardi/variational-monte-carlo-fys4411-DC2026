@@ -37,7 +37,23 @@ double EllipticGaussian::evaluateLn(std::vector<std::unique_ptr<class Particle>>
     return -m_parameters[0] * sum;  // -α * sum
 }
 
-double EllipticGaussian::computeParamDerivativeLn(std::vector<std::unique_ptr<class Particle>>& particles, unsigned int param_idx) {
+double EllipticGaussian::computeParticleLn(
+    std::vector<std::unique_ptr<Particle>>& particles,
+    unsigned int particle_idx) {
+    double sum = 0;
+    for (unsigned int j = 0; j < m_NDIM; j++) {
+        if (j == 2) {
+            sum += m_parameters[1] * sq(particles[particle_idx]->getPosition()[j]);
+        }
+        else {
+            sum += sq(particles[particle_idx]->getPosition()[j]);
+        }
+    }
+    return -m_parameters[0] * sum;
+}
+
+double EllipticGaussian::computeParamDerivativeLn(
+    std::vector<std::unique_ptr<class Particle>>& particles, unsigned int param_idx) {
     long double sum = 0;
 
     if (param_idx == 0) {       // derivative wrt alpha
@@ -64,7 +80,8 @@ double EllipticGaussian::computeParamDerivativeLn(std::vector<std::unique_ptr<cl
     throw std::invalid_argument("Invalid param_idx.");
 }
 
-double EllipticGaussian::computeDoubleDerivative(std::vector<std::unique_ptr<class Particle>>& particles) {
+double EllipticGaussian::computeDoubleDerivative(
+    std::vector<std::unique_ptr<class Particle>>& particles) {
     /* All wave functions need to implement this function, so you need to
      * find the double derivative analytically. Note that by double derivative,
      * we actually mean the sum of the Laplacians with respect to the
@@ -103,7 +120,9 @@ double EllipticGaussian::computeDoubleDerivative(std::vector<std::unique_ptr<cla
     return sum_over_particles;
 }
 
-std::vector<double> EllipticGaussian::computeQuantumForce(std::vector<std::unique_ptr<class Particle>>& particles, unsigned int particle_idx) {
+std::vector<double> EllipticGaussian::computeQuantumForce(
+    std::vector<std::unique_ptr<class Particle>>& particles,
+    unsigned int particle_idx) {
     double alpha = m_parameters[0];
     double beta = m_parameters[1];
     std::vector<double> qForce = std::vector<double>(m_NDIM);

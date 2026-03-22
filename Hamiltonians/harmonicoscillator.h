@@ -8,8 +8,9 @@ class HarmonicOscillator : public Hamiltonian {
 public:
     HarmonicOscillator(double omega);
     double computeLocalEnergy(
-            class WaveFunction& waveFunction,
-            std::vector<std::unique_ptr<class Particle>>& particles
+        class WaveFunction& waveFunction,
+        std::vector<std::unique_ptr<class Particle>>& particles,
+        class WaveFunctionCache& cache
     );
 
 private:

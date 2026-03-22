@@ -64,8 +64,8 @@ std::unique_ptr<class Sampler> System::runMetropolisSteps(double stepParameter,
 }
 
 double System::computeLocalEnergy() {
-    // Helper function
-    return m_hamiltonian->computeLocalEnergy(*m_waveFunction, m_particles);
+    return m_hamiltonian->computeLocalEnergy(
+        *m_waveFunction, m_particles, m_solver->getCache());
 }
 
 double System::computeParamDerivativeLn(unsigned int param_idx) {
