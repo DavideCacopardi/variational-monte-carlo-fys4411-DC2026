@@ -5,6 +5,11 @@
 
 #include "sampler.h"
 
+/**
+ * @brief Sampler dedicated to computing the radial one-body density of the system.
+ * * Uses a histogram approach to track particle positions as a function of 
+ * their distance from the center of the trap, yielding the spatial density \f$\rho(r)\f$.
+ */
 class DensitySampler : Sampler {
 public:
     DensitySampler(

@@ -8,7 +8,7 @@
 
 using namespace CommonUtils;
 
-std::vector<double> readVector(const std::string& filename) {
+std::vector<double> readVector(const std::string & filename) {
     std::ifstream file(filename);
     std::vector<double> vec;
     double temp;

@@ -5,6 +5,11 @@
 
 #include "sampler.h"
 
+/**
+ * @brief Sampler dedicated to computing the energy of the quantum system.
+ * * Accumulates the local energy at each Metropolis step to calculate 
+ * the expectation value of the Hamiltonian, its variance, and the standard error.
+ */
 class EnergySampler : Sampler {
 public:
     EnergySampler(

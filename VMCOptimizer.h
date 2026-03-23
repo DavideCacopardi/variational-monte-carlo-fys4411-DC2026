@@ -5,8 +5,22 @@
 
 #include "mcengine.h"
 
+/**
+ * @brief Class responsible for the automatic optimization of variational parameters.
+ * * Leverages the NLopt library to perform an optimization (e.g., BFGS or Nelder-Mead) 
+ * to minimize the ground state energy.
+ */
 class VMCOptimizer {
 public:
+    /**
+     * @brief Constructs the optimizer wrapper.
+     * @param engine Reference to the main MCEngine.
+     * @param numberOfMetropolisSteps Steps per optimization iteration.
+     * @param BFGS_tol Tolerance for stopping the optimization algorithm.
+     * @param logfile Optional pointer to log optimization progress.
+     * @param outfile Optional pointer to output general results.
+     * @param paramsfile Optional pointer to output final parameters to a dedicated file.
+     */
     VMCOptimizer(
         MCEngine& engine,
         unsigned int numberOfMetropolisSteps,
@@ -16,14 +30,29 @@ public:
         std::ofstream* paramsfile = nullptr
     );
 
-    // Run BFGS optimization starting from initial parameters
+    /**
+     * @brief Runs the optimization starting from an initial guess.
+     * @param initialParams Vector containing the starting variational parameters.
+     * @return Vector containing the optimal parameters found.
+     */
     std::vector<double> optimize(std::vector<double> initialParams);
 
 private:
-    // Runs VMC for given params and returns energy (+ fills grad)
+    /**
+     * @brief Runs a single VMC pass to compute energy and fill the gradient array.
+     * @param params Current variational parameters.
+     * @param grad Vector to be filled with the energy gradient (if algorithm requires it).
+     * @return Computed local energy for the given parameters.
+     */
     double computeMC(const std::vector<double>& params, std::vector<double>& grad);
 
-    // Static wrapper required by NLopt C-style callback
+    /**
+     * @brief Static wrapper required by the NLopt C-style callback function.
+     * @param params Array of parameters provided by NLopt.
+     * @param grad Array to write the gradient to.
+     * @param data Void pointer to the instance of VMCOptimizer.
+     * @return The objective function value (energy).
+     */
     static double nloptObjective(const std::vector<double>& params,
         std::vector<double>& grad,
         void* data) {

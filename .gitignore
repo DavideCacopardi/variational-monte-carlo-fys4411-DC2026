@@ -36,3 +36,7 @@ build
 
 # Ignore default executable
 vmc
+
+# Ignore generated documentation
+html/
+latex/

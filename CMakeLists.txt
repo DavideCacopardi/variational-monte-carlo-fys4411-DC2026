@@ -56,3 +56,18 @@ file(
 add_executable(vmc ${SOURCES})
 
 target_link_libraries(vmc PRIVATE ${ARMADILLO_LIBRARIES} NLopt::nlopt)
+
+find_package(Doxygen)
+
+if (DOXYGEN_FOUND)
+    add_custom_target(doc
+        COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Generating documentation..."
+        VERBATIM
+    )
+    
+    message(STATUS "Doxygen found!")
+else()
+    message(WARNING "Doxygen not found. The 'doc' target will not be available.")
+endif()

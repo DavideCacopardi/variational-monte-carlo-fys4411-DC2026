@@ -57,6 +57,7 @@ int main(int argc, char* argv[]) {
     chrono::high_resolution_clock::time_point watch_start, watch_end;
     chrono::duration<double> elapsedTime;
 
+    // --- Toggles based on argc, argv ---
     vector<bool> toggles(3, false);
     if (argc > 1) {
         for (int i = 1; i < argc; i++) {

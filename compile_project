@@ -9,6 +9,9 @@ cd build
 # Run CMake to create a Makefile
 cmake ../
 
+# Generate documentation using Doxygen
+make doc > /dev/null
+
 # Make the Makefile using two threads
 make -j2
 

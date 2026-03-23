@@ -5,6 +5,10 @@
 #include "montecarlo.h"
 #include "../WaveFunctions/wavefunctioncache.h"
 
+/**
+ * @brief Implements the standard Metropolis algorithm (Brute Force).
+ * * Proposes symmetric, uniformly distributed random moves for the particles.
+ */
 class Metropolis : public MonteCarlo {
 public:
     Metropolis(std::unique_ptr<class Random> rng, bool preferAnalytic = true);

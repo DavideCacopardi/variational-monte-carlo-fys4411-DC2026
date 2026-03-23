@@ -4,6 +4,12 @@
 
 #include "wavefunction.h"
 
+/**
+ * @brief Represents a simple, isotropic Gaussian wave function.
+ * * Used for non-interacting bosons in a perfectly spherical trap.
+ * Contains a single variational parameter, alpha.
+ * Equation: Psi = exp(-alpha * sum(r_i^2)).
+ */
 class SimpleGaussian : public WaveFunction {
 public:
     SimpleGaussian(double alpha);
