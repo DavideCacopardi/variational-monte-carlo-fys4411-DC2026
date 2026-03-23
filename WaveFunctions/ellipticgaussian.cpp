@@ -93,6 +93,7 @@ double EllipticGaussian::computeDoubleDerivative(
 
     double alpha = m_parameters[0];
     double beta = m_parameters[1];
+    double tot_eval = evaluate(particles);
 
     double sum_over_particles = 0;
     for (unsigned int i = 0; i < particles.size(); i++) {
@@ -113,7 +114,7 @@ double EllipticGaussian::computeDoubleDerivative(
         double phi_i = exp(-alpha * rad_sq);
         double lapl_term = (-2 * alpha * (2 + beta) + 4 * sq(alpha) * rad_sq2) * phi_i;
 
-        double prod_term = evaluate(particles) / phi_i;
+        double prod_term = tot_eval / phi_i;
 
         sum_over_particles += lapl_term * prod_term;
     }

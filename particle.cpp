@@ -7,5 +7,9 @@ Particle::Particle(const std::vector<double>& position) {
 }
 
 void Particle::adjustPosition(double change, unsigned int dimension) {
-    m_position.at(dimension) += change;
+    m_position[dimension] += change;
+}
+
+void Particle::setPosition(double value, unsigned int dimension) {
+    m_position[dimension] = value;
 }

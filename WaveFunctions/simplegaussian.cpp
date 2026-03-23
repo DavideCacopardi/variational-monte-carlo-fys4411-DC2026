@@ -63,3 +63,14 @@ double SimpleGaussian::computeDoubleDerivative(std::vector<std::unique_ptr<class
     }
     return sum_over_particles;
 }
+
+double SimpleGaussian::computeParticleLn(
+    std::vector<std::unique_ptr<class Particle>>& particles,
+    unsigned int particle_idx) {
+
+    double sum = 0;
+    unsigned int ndim = particles[particle_idx]->getNumberOfDimensions();
+    for (unsigned int j = 0; j < ndim; j++)
+        sum += sq(particles[particle_idx]->getPosition()[j]);
+    return -m_parameters[0] * sum;
+}

@@ -28,7 +28,8 @@ double RepEllipticGaussian::evaluate(std::vector<std::unique_ptr<class Particle>
                 dist += sq(particles[i]->getPosition()[j] - particles[k]->getPosition()[j]);
             }
             dist = sqrt(dist);
-            if (dist <= m_rep_a) return 0;
+            if (dist <= m_rep_a)
+                return 0;
             prod *= (1 - m_rep_a / dist);
         }
     }

@@ -1,5 +1,6 @@
 #include <memory>
 #include <vector>
+#include <iostream>
 
 #include "common.h"
 #include "metropolishastings.h"
@@ -61,6 +62,7 @@ bool MetropolisHastings::step(double timeStep, class WaveFunction& waveFunction,
 
     unsigned int particle_idx = m_rng->nextInt(0, particles.size() - 1);
     std::vector<double> qforceold = waveFunction.computeQuantumForce(particles, particle_idx);
+
     unsigned int numberOfDimensions = particles[particle_idx]->getNumberOfDimensions();
     std::vector<double> displacement(numberOfDimensions);
 
@@ -83,7 +85,7 @@ bool MetropolisHastings::step(double timeStep, class WaveFunction& waveFunction,
     // accept or reject
     bool accepted = m_rng->nextDouble() <= GreensFunction * exp(2.0 * lnRatio);
     if (accepted) {
-        m_cache->acceptMove(particle_idx);
+        m_cache->acceptMove(particle_idx, particles);
     }
     else {
         for (unsigned int i = 0; i < numberOfDimensions; i++) {

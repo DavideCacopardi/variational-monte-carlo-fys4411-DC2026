@@ -28,10 +28,21 @@ double WaveFunctionCache::computeLnRatio(std::vector<std::unique_ptr<class Parti
     return m_pendingLn - m_particleLn[particle_idx];
 }
 
-void WaveFunctionCache::acceptMove(unsigned int particle_idx) {
+void WaveFunctionCache::acceptMove(unsigned int particle_idx,
+    std::vector<std::unique_ptr<class Particle>>& particles) {
+    // Update the moved particle
     m_totalLn -= m_particleLn[particle_idx];
     m_particleLn[particle_idx] = m_pendingLn;
     m_totalLn += m_pendingLn;
+ 
+    // All other particles' cached ln values include Jastrow terms u(r_pk)
+    // that depend on particle_idx's position
+    for (unsigned int k = 0; k < m_particleLn.size(); k++) {
+        if (k == particle_idx) continue;
+        m_totalLn -= m_particleLn[k];
+        m_particleLn[k] = m_wf.computeParticleLn(particles, k);
+        m_totalLn += m_particleLn[k];
+    }
 }
 
 double WaveFunctionCache::computeNumericalLaplacian(
@@ -43,24 +54,31 @@ double WaveFunctionCache::computeNumericalLaplacian(
     for (unsigned int p = 0; p < particles.size(); p++) {
         double cachedLn = m_particleLn[p];  // ln(psi_p) before +-h
 
+        // print the cached value
+        if (std::isinf(cachedLn) || std::isnan(cachedLn) || std::abs(cachedLn) > 1e6) {
+            std::cout << "WARNING: cachedLn[" << p << "] = " << cachedLn << std::endl;
+        }
+
         for (unsigned int d = 0; d < ndim; d++) {
-            double h = 1e-4 * std::max(1.0, std::abs(particles[p]->getPosition()[d]));
+            double h = 1e-3;
+            // double h = 1e-4 * std::max(1.0, std::abs(particles[p]->getPosition()[d]));
 
             // +h on particle p
             particles[p]->adjustPosition(h, d);
-            double lnPlus = m_totalLn + (waveFunction.computeParticleLn(particles, p) - cachedLn);
+            double lnPlus = waveFunction.computeParticleLn(particles, p);
 
             // -2h on particle p
             particles[p]->adjustPosition(-2.0 * h, d);
-            double lnMinus = m_totalLn + (waveFunction.computeParticleLn(particles, p) - cachedLn);
+            double lnMinus = waveFunction.computeParticleLn(particles, p);
 
             // +h on particle p (restore)
             particles[p]->adjustPosition(h, d);
 
             // Laplacian in log space:
             // (d2 f) / f = d2 ln f + (d ln f)2
-            double d2Ln = (lnPlus - 2.0 * m_totalLn + lnMinus) / sq(h);
-            double dLn  = (lnPlus - lnMinus) / (2.0 * h);
+            double d2Ln = (lnPlus - 2.0 * cachedLn + lnMinus) / sq(h);
+            double dLn = (lnPlus - lnMinus) / (2.0 * h);
+
             sum += d2Ln + sq(dLn);
         }
     }

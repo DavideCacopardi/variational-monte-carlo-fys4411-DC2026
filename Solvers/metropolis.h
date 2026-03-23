@@ -3,7 +3,7 @@
 #include <memory>
 
 #include "montecarlo.h"
-
+#include "../WaveFunctions/wavefunctioncache.h"
 
 class Metropolis : public MonteCarlo {
 public:

@@ -25,19 +25,25 @@ bool Metropolis::step(
      * accepted by the Metropolis test (compare the wave function evaluated at
      * this new position with the one at the old position).
      */
+    if (!m_cache)
+        m_cache = std::make_unique<WaveFunctionCache>(waveFunction, particles);
+    
     unsigned int particle_idx = m_rng->nextInt(0, particles.size() - 1);
     
-    double wfold = waveFunction.evaluate(particles);
     unsigned int numberOfDimensions = particles[particle_idx]->getNumberOfDimensions();
     std::vector<double> displacement(numberOfDimensions);
     for (unsigned int i = 0; i < numberOfDimensions; i++) {
         displacement[i] = (m_rng->nextDouble() - .5) * stepLength;
         particles[particle_idx]->adjustPosition(displacement[i], i);
     }
-    double wfnew = waveFunction.evaluate(particles);
+ 
+    double lnRatio = m_cache->computeLnRatio(particles, particle_idx);
 
-    bool accepted = m_rng->nextDouble() <= sq(wfnew) / sq(wfold);
-    if (!accepted) {
+    bool accepted = m_rng->nextDouble() <= exp(2.0 * lnRatio);
+    if (accepted) {
+        m_cache->acceptMove(particle_idx, particles);
+    }
+    else {
         for (unsigned int i = 0; i < numberOfDimensions; i++) {
             particles[particle_idx]->adjustPosition(-displacement[i], i);
         }

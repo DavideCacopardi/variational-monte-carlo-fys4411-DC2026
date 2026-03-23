@@ -31,7 +31,7 @@ std::vector<std::unique_ptr<Particle>> setupRandomUniformInitialState(
             for (unsigned int k = 0; k < i; k++) {
                 double dist = 0;
                 for (unsigned int j = 0; j < numberOfDimensions; j++) {
-                    dist += (position[j] - particles[k]->getPosition()[j]);
+                    dist += sq(position[j] - particles[k]->getPosition()[j]);
                 }
                 if (sqrt(dist) <= rep_a) {
                     tooClose = true;

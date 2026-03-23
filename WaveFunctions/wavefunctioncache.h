@@ -12,7 +12,8 @@ public:
     double computeLnRatio(std::vector<std::unique_ptr<class Particle>>& particles,
         unsigned int particle_idx);
 
-    void acceptMove(unsigned int particle_idx);
+    void acceptMove(unsigned int particle_idx,
+        std::vector<std::unique_ptr<class Particle>>& particles);
 
     double getTotalLn() const { return m_totalLn; }
     double getParticleLn(unsigned int i) const { return m_particleLn[i]; }
