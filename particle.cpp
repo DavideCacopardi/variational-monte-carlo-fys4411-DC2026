@@ -13,3 +13,7 @@ void Particle::adjustPosition(double change, unsigned int dimension) {
 void Particle::setPosition(double value, unsigned int dimension) {
     m_position[dimension] = value;
 }
+
+void Particle::setPosition(const std::vector<double> loc) {
+    m_position = loc;
+}

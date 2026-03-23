@@ -5,76 +5,42 @@
 #include "onebodydensity.h"
 #include "common.h"
 #include "Math/random.h"
+#include "Samplers/densitysampler.h"
 
 using namespace CommonUtils;
 
 std::vector<std::pair<double, double>> computeOnebodyDensity(
-    WaveFunction& waveFunction,
-    unsigned int numberOfParticles,
-    unsigned int numberOfDimensions,
-    const std::vector<std::vector<double>>& rGrid,
-    double L,
-    unsigned int nSteps,
-    int seed,
-    std::ofstream* out) {
-    // seed
-    Random rng((seed == 0)
-        ? std::chrono::system_clock::now().time_since_epoch().count()
-        : seed);
+    MCEngine& engine,
+    const std::vector<double>& params,
+    unsigned int numberOfMetropolisSteps,
+    double rMax,
+    unsigned int nBins,
+    std::ofstream* densitiesOut) {
 
-    // build particles — particle 0 will be fixed, others sampled uniformly
-    std::vector<std::vector<double>> positions(numberOfParticles,
-        std::vector<double>(numberOfDimensions, 0.0));
+    std::cout << "Computing one-body density..." << std::flush;
 
-    // build Particle objects
-    std::vector<std::unique_ptr<Particle>> particles;
-    for (unsigned int p = 0; p < numberOfParticles; p++)
-        particles.push_back(std::make_unique<Particle>(positions[p]));
+    std::unique_ptr<DensitySampler> sampler = engine.runOnebodyDensity(params, numberOfMetropolisSteps, rMax, nBins);
 
-    // calc normalization
-    double totd = 0;
-    double volume = pow(2.0 * L, numberOfParticles * numberOfDimensions);
-    for (unsigned int step = 0; step < nSteps; step++) {
-        // sample particles 0..N-1 uniformly in [-L, L]
-        for (unsigned int p = 0; p < numberOfParticles; p++)
-        for (unsigned int d = 0; d < numberOfDimensions; d++)
-        particles[p]->setPosition((rng.nextDouble() * 2 - 1) * L, d);
-        
-        totd += exp(2.0 * waveFunction.evaluateLn(particles));
-        // totd += sq(waveFunction.evaluate(particles));
+    const std::vector<double>& grid = sampler->getRadialGrid();
+    const std::vector<double>& densityProf = sampler->getDensityProfile();
+    const std::vector<double>& errorProf = sampler->getDensityError();
+
+    std::vector<std::pair<double, double>> result(nBins);
+
+    if (densitiesOut) {
+        *densitiesOut << "# r, density, error estimate\n";
     }
-    totd *= volume / (double) nSteps; 
-    
-    unsigned long int gridSize = rGrid.size();
-    std::vector<std::pair<double, double>> density(gridSize);
-    std::vector<double> densSamples(nSteps);
-    
-    volume = pow(2.0 * L, (numberOfParticles - 1) * numberOfDimensions);
-    for (unsigned int r_idx = 0; r_idx < gridSize; r_idx++) {
-        std::cout << "\rComputing one-body density for r_"
-        << r_idx + 1 << " out of " << gridSize << std::flush;
-        // fix particle 0 at r
-        for (unsigned int d = 0; d < numberOfDimensions; d++)
-        particles[0]->setPosition(rGrid[r_idx][d], d);
-        
-        for (unsigned int step = 0; step < nSteps; step++) {
-            // sample particles 1..N-1 uniformly in [-L, L]
-            for (unsigned int p = 1; p < numberOfParticles; p++)
-            for (unsigned int d = 0; d < numberOfDimensions; d++)
-            particles[p]->setPosition((rng.nextDouble() * 2 - 1) * L, d);
-            
-            densSamples[step] = exp(2.0 * waveFunction.evaluateLn(particles)) / totd * numberOfParticles * volume;
-            // densSamples[step] = sq(waveFunction.evaluate(particles)) / totd * numberOfParticles * volume;
-        }
-        
-        density[r_idx] = mean_err(densSamples);
 
-        if (out) {
-            *out << std::scientific << std::setprecision(9) << density[r_idx].first
-                << ", " << density[r_idx].second << std::endl;
+    for (unsigned int i = 0; i < nBins; i++) {
+        result[i] = std::make_pair(grid[i], densityProf[i]);
+        if (densitiesOut) {
+            *densitiesOut << std::scientific << std::setprecision(9) << grid[i]
+                << ", " << densityProf[i] << ", "
+                << errorProf[i] << std::endl;
         }
     }
 
-    std::cout << std::endl;
-    return density;
+    std::cout << "\r                             " << std::endl;
+
+    return result;
 }

@@ -16,14 +16,20 @@ public:
         double stepParameter,
         unsigned int numberOfEquilibrationSteps);
 
-    std::unique_ptr<class Sampler> runMetropolisSteps(
+    std::unique_ptr<class EnergySampler> runMetropolisSteps(
         double stepParameter,
         unsigned int numberOfMetropolisSteps,
         std::ofstream* energiesOut = nullptr);
 
+    std::unique_ptr<class DensitySampler> runMetropolisStepsOnebodyDensity(
+        double stepParameter, unsigned int numberOfMetropolisSteps,
+        double rMax, unsigned int nBins);
+
     double computeLocalEnergy();
     double computeParamDerivativeLn(unsigned int param_idx);
     const std::vector<double>& getWaveFunctionParameters();
+
+    const std::vector<std::unique_ptr<class Particle>>& getParticles() const { return m_particles; }
 
 private:
     unsigned int m_numberOfParticles = 0;

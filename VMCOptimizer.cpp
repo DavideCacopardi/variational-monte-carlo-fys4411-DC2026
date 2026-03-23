@@ -4,7 +4,7 @@
 
 #include "VMCOptimizer.h"
 #include "system.h"
-#include "sampler.h"
+#include "Samplers/energysampler.h"
 #include "WaveFunctions/ellipticgaussian.h"
 #include "InitialStates/initialstate.h"
 #include "Math/random.h"

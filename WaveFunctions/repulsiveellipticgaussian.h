@@ -15,8 +15,8 @@ public:
         unsigned int particle_idx);
 
     bool hasAnalyticalDerivative() override { return false; }
-    std::vector<double> lowerBounds() const override { return { 0.1, 1.0 }; }
-    std::vector<double> upperBounds() const override { return { 2.0, 5.0 }; }
+    std::vector<double> lowerBounds() const override { return { 1e-3, 0.1 }; }
+    std::vector<double> upperBounds() const override { return { 1.0, 5.0 }; }
 
 private:
     const unsigned int m_NDIM = 3;

@@ -36,6 +36,7 @@ include_directories(
     Math
     WaveFunctions
     Solvers
+    Samplers
     ${ARMADILLO_INCLUDE_DIRS}
 )
 
@@ -46,6 +47,7 @@ file(
     GLOB SOURCES "InitialStates/*.cpp"
     GLOB SOURCES "Math/*.cpp"
     GLOB SOURCES "Solvers/*.cpp"
+    GLOB SOURCES "Samplers/*.cpp"
     GLOB SOURCES "WaveFunctions/*.cpp"
 )
 

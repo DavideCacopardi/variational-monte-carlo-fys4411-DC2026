@@ -3,9 +3,11 @@
 #include <vector>
 #include <chrono>
 
-class Sampler {
+#include "sampler.h"
+
+class EnergySampler : Sampler {
 public:
-    Sampler(
+    EnergySampler(
         unsigned int numberOfParticles,
         unsigned int numberOfDimensions,
         unsigned int numberOfParameters,
@@ -21,17 +23,8 @@ public:
     double getEnergy() { return m_energy; }
     double getError() { return m_error; }
     double getCovariance(unsigned int param_idx) { return m_covariance[param_idx]; }
-    void startStopwatch();
-    double stopStopwatch();
-    double partialStopwatch();
 
 private:
-    unsigned int m_stepNumber = 0;
-    unsigned int m_numberOfMetropolisSteps = 0;
-    unsigned int m_numberOfParticles = 0;
-    unsigned int m_numberOfDimensions = 0;
-    unsigned int m_numberOfParameters = 0;
-    unsigned int m_numberOfAcceptedSteps = 0;
     double m_energy = 0;
     double m_energySQ = 0;
     double m_variance = 0;
@@ -40,8 +33,4 @@ private:
     double m_error = 0;
     double m_cumulativeEnergy = 0;
     double m_cumulativeEnergySQ = 0;
-    double m_stepLength = 0;
-    std::chrono::high_resolution_clock::time_point m_watch_start;
-    std::chrono::high_resolution_clock::time_point m_watch_end;
-    std::chrono::duration<double> m_elapsedTime;
 };

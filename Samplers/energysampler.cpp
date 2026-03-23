@@ -7,25 +7,24 @@
 #include <chrono>
 #include "system.h"
 #include "common.h"
-#include "sampler.h"
+#include "energysampler.h"
 #include "particle.h"
 #include "Hamiltonians/hamiltonian.h"
 #include "WaveFunctions/wavefunction.h"
 
 using namespace CommonUtils;
 
-Sampler::Sampler(
+EnergySampler::EnergySampler(
     unsigned int numberOfParticles,
     unsigned int numberOfDimensions,
     unsigned int numberOfParameters,
     double stepLength,
     unsigned int numberOfMetropolisSteps
-) {
-    m_stepNumber = 0;
-    m_numberOfMetropolisSteps = numberOfMetropolisSteps;
-    m_numberOfParticles = numberOfParticles;
-    m_numberOfDimensions = numberOfDimensions;
-    m_numberOfParameters = numberOfParameters;
+) : Sampler(numberOfParticles,
+    numberOfDimensions,
+    numberOfParameters,
+    stepLength,
+    numberOfMetropolisSteps) {
     m_covariance.resize(m_numberOfParameters, 0);
     m_opO.resize(m_numberOfParameters, 0);
     m_energy = 0;
@@ -34,13 +33,10 @@ Sampler::Sampler(
     m_error = 0;
     m_cumulativeEnergy = 0;
     m_cumulativeEnergySQ = 0;
-    m_stepLength = stepLength;
-    m_numberOfAcceptedSteps = 0;
-    m_watch_start = std::chrono::high_resolution_clock::now();
 }
 
 
-void Sampler::sample(bool acceptedStep, System* system, std::ofstream* energiesOut) {
+void EnergySampler::sample(bool acceptedStep, System* system, std::ofstream* energiesOut) {
     /* Here you should sample all the interesting things you want to measure.
      * Note that there are (way) more than the single one here currently.
      */
@@ -60,7 +56,7 @@ void Sampler::sample(bool acceptedStep, System* system, std::ofstream* energiesO
     m_watch_end = std::chrono::high_resolution_clock::now();
 }
 
-void Sampler::printOutputToTerminal(System& system) {
+void EnergySampler::printOutputToTerminal(System& system) {
     std::cout << std::endl;
     std::cout << "  -- System info -- " << std::endl;
     std::cout << " Number of particles  : " << m_numberOfParticles << std::endl;
@@ -83,7 +79,7 @@ void Sampler::printOutputToTerminal(System& system) {
     std::cout << std::endl;
 }
 
-void Sampler::printOutputToFile(System& system, std::ofstream& outs) {
+void EnergySampler::printOutputToFile(System& system, std::ofstream& outs) {
     outs << std::endl;
     outs << "#  -- System info -- " << std::endl;
     outs << "# Number of particles  : " << m_numberOfParticles << std::endl;
@@ -106,7 +102,7 @@ void Sampler::printOutputToFile(System& system, std::ofstream& outs) {
     outs << m_energy << ", \t" << m_variance << ", \t" << m_error << std::endl;
 }
 
-void Sampler::logOutput(const std::vector<double>& params, std::ofstream& outs) {
+void EnergySampler::logOutput(const std::vector<double>& params, std::ofstream& outs) {
     const unsigned int prec = 7, width = 16;
     outs << std::scientific << std::setprecision(prec);
     for (unsigned int i = 0; i < m_numberOfParameters; i++) {
@@ -121,7 +117,7 @@ void Sampler::logOutput(const std::vector<double>& params, std::ofstream& outs) 
         << std::endl;
 }
 
-void Sampler::computeAverages() {
+void EnergySampler::computeAverages() {
     /* Compute the averages of the sampled quantities.
      */
     m_energy = m_cumulativeEnergy / m_numberOfMetropolisSteps;

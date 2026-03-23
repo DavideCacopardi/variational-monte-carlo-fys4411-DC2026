@@ -3,7 +3,8 @@
 #include <cassert>
 
 #include "system.h"
-#include "sampler.h"
+#include "Samplers/energysampler.h"
+#include "Samplers/densitysampler.h"
 #include "particle.h"
 #include "WaveFunctions/wavefunction.h"
 #include "Hamiltonians/hamiltonian.h"
@@ -28,7 +29,8 @@ System::System(
 }
 
 
-unsigned int System::runEquilibrationSteps(double stepParameter, unsigned int numberOfEquilibrationSteps) {
+unsigned int System::runEquilibrationSteps(double stepParameter,
+    unsigned int numberOfEquilibrationSteps) {
     unsigned int acceptedSteps = 0;
 
     for (unsigned int i = 0; i < numberOfEquilibrationSteps; i++) {
@@ -38,9 +40,9 @@ unsigned int System::runEquilibrationSteps(double stepParameter, unsigned int nu
     return acceptedSteps;
 }
 
-std::unique_ptr<class Sampler> System::runMetropolisSteps(double stepParameter,
+std::unique_ptr<class EnergySampler> System::runMetropolisSteps(double stepParameter,
     unsigned int numberOfMetropolisSteps, std::ofstream* energiesOut) {
-    auto sampler = std::make_unique<Sampler>(
+    auto sampler = std::make_unique<EnergySampler>(
         m_numberOfParticles,
         m_numberOfDimensions,
         m_waveFunction->getNumberOfParameters(),
@@ -52,10 +54,33 @@ std::unique_ptr<class Sampler> System::runMetropolisSteps(double stepParameter,
          */
         bool acceptedStep = m_solver->step(stepParameter, *m_waveFunction, m_particles);
 
-        /* Here you should sample the energy (and maybe other things) using the
-         * sampler instance of the Sampler class.
-         */
+        // Sample energy
         sampler->sample(acceptedStep, this, energiesOut);
+    }
+
+    sampler->computeAverages();
+
+    return sampler;
+}
+
+std::unique_ptr<class DensitySampler> System::runMetropolisStepsOnebodyDensity(double stepParameter,
+    unsigned int numberOfMetropolisSteps, double rMax, unsigned int nBins) {
+    auto sampler = std::make_unique<DensitySampler>(
+        m_numberOfParticles,
+        m_numberOfDimensions,
+        m_waveFunction->getNumberOfParameters(),
+        stepParameter,
+        numberOfMetropolisSteps,
+        rMax,
+        nBins);
+
+    for (unsigned int i = 0; i < numberOfMetropolisSteps; i++) {
+        /* Call solver method to do a single Monte-Carlo step.
+         */
+        bool acceptedStep = m_solver->step(stepParameter, *m_waveFunction, m_particles);
+
+        // sample 1
+        sampler->sample(acceptedStep, this);
     }
 
     sampler->computeAverages();
