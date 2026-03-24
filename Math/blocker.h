@@ -1,3 +1,6 @@
+// Implementation of the automated blocking algorithm by Marius Jonsson (Phys. Rev. E 98, 043304).
+// Cloned from : [www.github.com / computative / block]
+
 #ifndef BLOCKER_H
 #define BLOCKER_H
 

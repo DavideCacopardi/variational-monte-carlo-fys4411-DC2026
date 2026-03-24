@@ -23,12 +23,14 @@ std::vector<std::pair<double, double>> computeOnebodyDensity(
 
     const std::vector<double>& grid = sampler->getRadialGrid();
     const std::vector<double>& densityProf = sampler->getDensityProfile();
-    const std::vector<double>& errorProf = sampler->getDensityError();
+    const std::vector<double>& probabilityProf = sampler->getProbabilityProfile();
+    const std::vector<double>& densityErrProf = sampler->getDensityError();
+    const std::vector<double>& probabilityErrProf = sampler->getProbabilityError();
 
     std::vector<std::pair<double, double>> result(nBins);
 
     if (densitiesOut) {
-        *densitiesOut << "# r, density, error estimate\n";
+        *densitiesOut << "# r, density, density error estimate, radial probability, probability error estimate\n";
     }
 
     for (unsigned int i = 0; i < nBins; i++) {
@@ -36,7 +38,8 @@ std::vector<std::pair<double, double>> computeOnebodyDensity(
         if (densitiesOut) {
             *densitiesOut << std::scientific << std::setprecision(9) << grid[i]
                 << ", " << densityProf[i] << ", "
-                << errorProf[i] << std::endl;
+                << densityErrProf[i] << ", " << probabilityProf[i] << ", "
+                << probabilityErrProf[i] << std::endl;
         }
     }
 

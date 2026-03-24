@@ -29,6 +29,8 @@ m_rMax(rMax), m_nBins(nBins) {
     m_histogram.assign(m_nBins, 0.0);
     m_densityProfile.assign(m_nBins, 0.0);
     m_densityError.assign(m_nBins, 0.0);
+    m_probabilityProfile.assign(m_nBins, 0.0);
+    m_probabilityError.assign(m_nBins, 0.0);
     m_rGrid.assign(m_nBins, 0.0);
 
     for (unsigned int i = 0; i < m_nBins; i++) {
@@ -70,14 +72,20 @@ void DensitySampler::computeAverages() {
             - pow(r_inner, m_numberOfDimensions));
 
         if (volume > 0) {
-            // not dividing by the number of particles
+            // 1: density averaged over radius
+            // not dividing by the number of particles, accounting for volume
             double normalization = m_numberOfMetropolisSteps * volume;
-
             // Density = bin_counts / normalization
             m_densityProfile[i] = m_histogram[i] / normalization;
-
             // Poisson error estimate 
             m_densityError[i] = sqrt(m_histogram[i]) / normalization;
+            // 2: radial probability
+            // not dividing by the number of particles, nor by the volume
+            normalization = m_numberOfMetropolisSteps * (r_outer - r_inner);
+            // Probability = bin_counts / normalization 
+            m_probabilityProfile[i] = m_histogram[i] / normalization;
+            // Poisson error estimate 
+            m_probabilityError[i] = sqrt(m_histogram[i]) / normalization;
         }
     }
     m_elapsedTime = m_watch_end - m_watch_start;
