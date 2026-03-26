@@ -31,28 +31,32 @@ using namespace CommonUtils;
 
 using HamiltonianFactory = function<unique_ptr<class Hamiltonian>()>;
 using WaveFunctionFactory = function<unique_ptr<class WaveFunction>(const vector<double>&)>;
-using SolverFactory = function<unique_ptr<MonteCarlo>(unique_ptr<Random>, bool)>;
+using SolverFactory = function<unique_ptr<MonteCarlo>(unique_ptr<Random>)>;
 
 int main(int argc, char* argv[]) {
     // --- Parameters ---
-    string hamiltonianType = "RepulsiveHO";
-    string waveFunctionType = "RepEllipticGaussian";
-    string solverType = "MetropolisHastings";
+    string hamiltonianType = "HarmonicOscillator";  // HarmonicOscillator or RepulsiveHO
+    string waveFunctionType = "SimpleGaussian";     // SimpleGaussian or EllipticGaussian or RepEllipticGaussian
+    string solverType = "Metropolis";         // Metropolis or MetropolisHastings
+    bool preferAnalytic = true;
     unsigned int numberOfDimensions = 3;
-    unsigned int numberOfParticles = 3;
-    unsigned int numberOfMetropolisSteps = 1e5;
+    unsigned int numberOfParticles = 5;
+    unsigned int numberOfMetropolisSteps = 1e6;
     unsigned int numberOfEquilibrationSteps = 1e5;
-    unsigned int finalMClog2steps = 20;
-    unsigned int onebodyDensitySteps = 5e6;
+    unsigned int finalMClog2steps = log2(1e7);
+    unsigned int onebodyDensitySteps = 1e7;
     double omega = 1.0;
     double omega_z = 1.0;
-    double repulsive_a_factor = 0.33;
-    double timeStep = 0.05;
+    double repulsive_a_factor = 0.0;
+    double timeStep = 2.4;      // for brute force Metropolis, this corresponds to stepLength
+    // double timeStep = 0.5;      // for brute force Metropolis, this corresponds to stepLength
     double onebodyDensity_rMax = 3.5;
     unsigned int onebodyDensity_nBins = 50;
-    double BFGS_tol = 1e-4;
-    int seed = 0;
-    vector<double> initialParams = { 0.75 , 2 };
+    double BFGS_tol = 1e-5;
+    int seed = 0;    // if seed == 0, seed is chosen randomly at each RNG construction
+    // int seed = chrono::system_clock::now().time_since_epoch().count();
+    vector<double> initialParams = { 0.75 };
+    // vector<double> initialParams = { 0.55 , 2.82843 };
 
     chrono::high_resolution_clock::time_point watch_start, watch_end;
     chrono::duration<double> elapsedTime;
@@ -92,6 +96,7 @@ int main(int argc, char* argv[]) {
         globalLog << "WaveFunction     : " << waveFunctionType << "\n";
         globalLog << "Solver           : " << solverType << "\n";
         globalLog << "-----------------------------------------\n";
+        globalLog << "preferAnalytic   : " << (preferAnalytic ? "true" : "false") << "\n";
         globalLog << "dimensions (D)   : " << numberOfDimensions << "\n";
         globalLog << "particles (N)    : " << numberOfParticles << "\n";
         globalLog << "omega            : " << omega << "\n";
@@ -125,7 +130,7 @@ int main(int argc, char* argv[]) {
         else // default to Repulsive
             return make_unique<RepEllipticGaussian>(p[0], p[1], repulsive_a_factor / sqrt(omega));
         };
-    SolverFactory solverFac = [=](unique_ptr<Random> rng, bool preferAnalytic) -> unique_ptr<MonteCarlo> {
+    SolverFactory solverFac = [=](unique_ptr<Random> rng) -> unique_ptr<MonteCarlo> {
         if (solverType == "Metropolis") {
             return make_unique<Metropolis>(move(rng), preferAnalytic);
         }
@@ -147,6 +152,12 @@ int main(int argc, char* argv[]) {
 
     if (toggles[0]) {
         // --- 1: Optimization ---
+        globalLog << "Initial parameters: " << setprecision(9);
+        for (unsigned int i = 0; i < initialParams.size(); i++) {
+            globalLog << initialParams[i] << ", \t";
+        }
+        globalLog << endl;
+
         ofstream logfile("./iofiles/log.csv");
         ofstream outfile("./iofiles/details_results.csv");
         ofstream paramsfile("./iofiles/params.dat");
@@ -179,6 +190,10 @@ int main(int argc, char* argv[]) {
             << " +- " << sampler->getError() << endl << defaultfloat;
         globalLog << scientific << setprecision(9) << "FinalMC energy: " << sampler->getEnergy()
             << " +- " << sampler->getError() << endl << defaultfloat;
+        cout << scientific << setprecision(9) << "Acceptance ratio: " << sampler->getAcceptanceRatio()
+            << endl << defaultfloat;
+        globalLog << scientific << setprecision(9) << "Acceptance ratio: " << sampler->getAcceptanceRatio()
+            << endl << defaultfloat;
         watch_end = chrono::high_resolution_clock::now();
         elapsedTime = watch_end - watch_start;
         cout << "FinalMC done (in " << elapsedTime.count() << " s).\n\n";

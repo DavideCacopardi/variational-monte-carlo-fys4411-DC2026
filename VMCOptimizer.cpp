@@ -66,7 +66,7 @@ std::vector<double> VMCOptimizer::optimize(std::vector<double> params) {
     lib_optimizer.set_min_objective(nloptObjective, this);
     lib_optimizer.set_xtol_rel(m_BFGS_tol);
     lib_optimizer.set_maxeval(400);
-    lib_optimizer.set_maxtime(3600.0);
+    lib_optimizer.set_maxtime(10800.0);
     m_mcCount = 0;
 
     double minEnergy;

@@ -18,5 +18,8 @@ public:
     double computeParticleLn(std::vector<std::unique_ptr<class Particle>>& particles,
         unsigned int particle_idx);
     bool hasAnalyticalDerivative() override { return true; }
+
+    std::vector<double> lowerBounds() const override { return { 1e-3 }; }
+    std::vector<double> upperBounds() const override { return { 1.0 }; }
 };
  

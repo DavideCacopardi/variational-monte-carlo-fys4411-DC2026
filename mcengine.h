@@ -17,8 +17,8 @@ public:
     using HamiltonianFactory = std::function<std::unique_ptr<class Hamiltonian>()>;
     /// @brief Type for the WaveFunction factory (accepts variational parameters).
     using WaveFunctionFactory = std::function<std::unique_ptr<class WaveFunction>(const std::vector<double>&)>;
-    /// @brief Type for the Solver factory (accepts a random generator and an importance sampling toggle).
-    using SolverFactory = std::function<std::unique_ptr<class MonteCarlo>(std::unique_ptr<class Random>, bool)>;
+    /// @brief Type for the Solver factory (accepts a random generator).
+    using SolverFactory = std::function<std::unique_ptr<class MonteCarlo>(std::unique_ptr<class Random>)>;
 
     /**
      * @brief Initializes the VMC engine, configuring physical parameters and Factories.

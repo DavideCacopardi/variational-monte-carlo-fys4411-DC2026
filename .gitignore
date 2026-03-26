@@ -33,9 +33,20 @@
 
 # Ignore build-directory
 build
+build_release
+build_debug
+
+#ignore logs
+logs/*
+
+#ignore report files
+images_backup
+reportFiles
 
 # Ignore default executable
 vmc
+vmc_release
+vmc_debug
 
 # Ignore generated documentation
 html/

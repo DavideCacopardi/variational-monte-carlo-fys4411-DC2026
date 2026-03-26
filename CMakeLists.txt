@@ -2,8 +2,9 @@ cmake_minimum_required(VERSION 3.25)
 
 project(project_1_fys4411)
 
-# Set CXX standard to C++14
-set(CMAKE_CXX_STANDARD 14)
+# Set CXX standard to C++17
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Check if the user has specified a build type via the command line, e.g., (in the
 # build-directory)
@@ -22,7 +23,8 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 # Add full compiler optimization when in the release build type. Other options include
 # -O0, -O1, -O2.
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+# set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -march=native -flto -fno-math-errno")
 
 # Find packages
 find_package(Armadillo REQUIRED)
@@ -38,6 +40,7 @@ include_directories(
     Solvers
     Samplers
     ${ARMADILLO_INCLUDE_DIRS}
+    ${NLOPT_INCLUDE_DIRS}
 )
 
 # Add sources from all directories
@@ -55,7 +58,7 @@ file(
 # Create executable called "vmc"
 add_executable(vmc ${SOURCES})
 
-target_link_libraries(vmc PRIVATE ${ARMADILLO_LIBRARIES} NLopt::nlopt)
+target_link_libraries(vmc PRIVATE ${ARMADILLO_LIBRARIES} ${NLOPT_LIBRARIES})
 
 find_package(Doxygen)
 

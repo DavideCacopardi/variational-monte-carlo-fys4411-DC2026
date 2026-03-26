@@ -42,7 +42,7 @@ std::unique_ptr<EnergySampler> MCEngine::run(
         : m_seed);
     auto particles = setupRandomUniformInitialState(
         m_numberOfDimensions, m_numberOfParticles, *rng, m_rep_a);
-    auto solver = m_solverFactory(std::move(rng), true);
+    auto solver = m_solverFactory(std::move(rng));
     auto system = std::make_unique<System>(
         m_hamiltonianFactory(),
         m_waveFunctionFactory(params),
@@ -63,7 +63,7 @@ std::unique_ptr<DensitySampler> MCEngine::runOnebodyDensity(
         : m_seed);
     auto particles = setupRandomUniformInitialState(
         m_numberOfDimensions, m_numberOfParticles, *rng, m_rep_a);
-    auto solver = m_solverFactory(std::move(rng), true);
+    auto solver = m_solverFactory(std::move(rng));
     auto system = std::make_unique<System>(
         m_hamiltonianFactory(),
         m_waveFunctionFactory(params),

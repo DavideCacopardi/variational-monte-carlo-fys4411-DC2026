@@ -27,6 +27,7 @@ public:
     void computeAverages();
     double getEnergy() { return m_energy; }
     double getError() { return m_error; }
+    double getAcceptanceRatio() { return (double)m_numberOfAcceptedSteps / (double)m_numberOfMetropolisSteps; }
     double getCovariance(unsigned int param_idx) { return m_covariance[param_idx]; }
 
 private:
