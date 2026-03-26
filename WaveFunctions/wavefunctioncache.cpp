@@ -15,33 +15,27 @@ WaveFunctionCache::WaveFunctionCache(WaveFunction& waveFunction,
     : m_wf(waveFunction) {
     unsigned int N = particles.size();
     m_particleLn.resize(N);
-    m_totalLn = 0.0;
     for (unsigned int i = 0; i < N; i++) {
         m_particleLn[i] = m_wf.computeParticleLn(particles, i);
-        m_totalLn += m_particleLn[i];
     }
 }
 
 double WaveFunctionCache::computeLnRatio(std::vector<std::unique_ptr<class Particle>>& particles,
     unsigned int particle_idx) {
+    m_particleToUpd = particle_idx;
     m_pendingLn = m_wf.computeParticleLn(particles, particle_idx);
     return m_pendingLn - m_particleLn[particle_idx];
 }
 
-void WaveFunctionCache::acceptMove(unsigned int particle_idx,
-    std::vector<std::unique_ptr<class Particle>>& particles) {
+void WaveFunctionCache::acceptMove(std::vector<std::unique_ptr<class Particle>>& particles) {
     // Update the moved particle
-    m_totalLn -= m_particleLn[particle_idx];
-    m_particleLn[particle_idx] = m_pendingLn;
-    m_totalLn += m_pendingLn;
+    m_particleLn[m_particleToUpd] = m_pendingLn;
  
     // All other particles' cached ln values include Jastrow terms u(r_pk)
     // that depend on particle_idx's position
     for (unsigned int k = 0; k < m_particleLn.size(); k++) {
-        if (k == particle_idx) continue;
-        m_totalLn -= m_particleLn[k];
+        if (k == m_particleToUpd) continue;
         m_particleLn[k] = m_wf.computeParticleLn(particles, k);
-        m_totalLn += m_particleLn[k];
     }
 }
 
@@ -53,11 +47,6 @@ double WaveFunctionCache::computeNumericalLaplacian(
 
     for (unsigned int p = 0; p < particles.size(); p++) {
         double cachedLn = m_particleLn[p];  // ln(psi_p) before +-h
-
-        // print the cached value
-        if (std::isinf(cachedLn) || std::isnan(cachedLn) || std::abs(cachedLn) > 1e6) {
-            std::cout << "WARNING: cachedLn[" << p << "] = " << cachedLn << std::endl;
-        }
 
         for (unsigned int d = 0; d < ndim; d++) {
             double h = 1e-3;

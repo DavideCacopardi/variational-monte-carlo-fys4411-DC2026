@@ -38,7 +38,7 @@ bool Metropolis::step(
 
     bool accepted = m_rng->nextDouble() <= exp(2.0 * lnRatio);
     if (accepted) {
-        m_cache->acceptMove(particle_idx, particles);
+        m_cache->acceptMove(particles);
     }
     else {
         for (unsigned int i = 0; i < numberOfDimensions; i++) {

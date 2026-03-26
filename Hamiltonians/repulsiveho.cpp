@@ -50,7 +50,7 @@ double RepulsiveHO::computeLocalEnergy(
 
     double kineticEnergy;
     if (waveFunction.hasAnalyticalDerivative() && m_analytic_ifAvailable) {
-        kineticEnergy = -0.5 * waveFunction.computeDoubleDerivative(particles) / exp(cache.getTotalLn());
+        kineticEnergy = -0.5 * waveFunction.computeDoubleDerivative(particles) / waveFunction.evaluate(particles);
     }
     else {
         // the following commented line is deprecated

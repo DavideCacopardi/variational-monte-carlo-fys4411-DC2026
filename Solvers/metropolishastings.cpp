@@ -85,7 +85,7 @@ bool MetropolisHastings::step(double timeStep, class WaveFunction& waveFunction,
     // accept or reject
     bool accepted = m_rng->nextDouble() <= GreensFunction * exp(2.0 * lnRatio);
     if (accepted) {
-        m_cache->acceptMove(particle_idx, particles);
+        m_cache->acceptMove(particles);
     }
     else {
         for (unsigned int i = 0; i < numberOfDimensions; i++) {
