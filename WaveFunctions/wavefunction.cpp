@@ -11,10 +11,6 @@
 using namespace CommonUtils;
 
 double WaveFunction::computeNumericalDoubleDerivative(std::vector<std::unique_ptr<class Particle>>& particles) {
-    /* Numerical double derivative
-     * 
-     */
-
     double sum = 0.0;
     double wfCurrent = evaluate(particles);
     unsigned int numberOfDimensions = particles[0]->getNumberOfDimensions();

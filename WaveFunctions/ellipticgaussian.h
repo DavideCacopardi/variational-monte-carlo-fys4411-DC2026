@@ -15,8 +15,8 @@ public:
     double computeParamDerivativeLn(std::vector<std::unique_ptr<class Particle>>& particles,
         unsigned int param_idx);
     bool hasAnalyticalDerivative() override { return true; }
-    std::vector<double> lowerBounds() const override { return { 1e-3, 1e-3 }; }
-    std::vector<double> upperBounds() const override { return { 10.0, 10.0 }; }
+    std::vector<double> lowerBounds() const override { return { 1e-3, 0.1 }; }
+    std::vector<double> upperBounds() const override { return { 1.0, 5.0 }; }
     double computeDoubleDerivative(std::vector<std::unique_ptr<class Particle>>& particles);
     std::vector<double> computeQuantumForce(
         std::vector<std::unique_ptr<class Particle>>& particles, unsigned int particle_idx);

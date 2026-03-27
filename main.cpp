@@ -35,28 +35,27 @@ using SolverFactory = function<unique_ptr<MonteCarlo>(unique_ptr<Random>)>;
 
 int main(int argc, char* argv[]) {
     // --- Parameters ---
-    string hamiltonianType = "HarmonicOscillator";  // HarmonicOscillator or RepulsiveHO
-    string waveFunctionType = "SimpleGaussian";     // SimpleGaussian or EllipticGaussian or RepEllipticGaussian
+    string hamiltonianType = "RepulsiveHO";  // HarmonicOscillator or RepulsiveHO
+    string waveFunctionType = "RepEllipticGaussian";     // SimpleGaussian or EllipticGaussian or RepEllipticGaussian
     string solverType = "MetropolisHastings";         // Metropolis or MetropolisHastings
     bool preferAnalytic = true;
     unsigned int numberOfDimensions = 3;
-    unsigned int numberOfParticles = 5;
+    unsigned int numberOfParticles = 10;
     unsigned int numberOfMetropolisSteps = 1e6;
     unsigned int numberOfEquilibrationSteps = 1e5;
     unsigned int finalMClog2steps = log2(1e7);
     unsigned int onebodyDensitySteps = 1e7;
     double omega = 1.0;
-    double omega_z = 1.0;
-    double repulsive_a_factor = 0.0;
-    // double timeStep = 2.4;      // for brute force Metropolis, this corresponds to stepLength
-    double timeStep = 0.5;      // for brute force Metropolis, this corresponds to stepLength
+    double omega_z = 2.8243;
+    double repulsive_a_factor = 0.05;
+    double timeStep = 0.05;     // for brute force Metropolis, this corresponds to stepLength
     double onebodyDensity_rMax = 3.5;
     unsigned int onebodyDensity_nBins = 50;
-    double BFGS_tol = 1e-5;
-    int seed = 0;    // if seed == 0, seed is chosen randomly at each RNG construction
-    // int seed = chrono::system_clock::now().time_since_epoch().count();
-    vector<double> initialParams = { 0.75 };
-    // vector<double> initialParams = { 0.55 , 2.82843 };
+    double BFGS_tol = 1e-5;     // NLopt's xtol_rel relative tolerance criterion for optimization
+    // int seed = 0;    // if seed == 0, seed is chosen randomly at each RNG construction
+    int seed = chrono::system_clock::now().time_since_epoch().count();
+    // vector<double> initialParams = { 0.75 };
+    vector<double> initialParams = { 0.50 , 2.8243 };
 
     chrono::high_resolution_clock::time_point watch_start, watch_end;
     chrono::duration<double> elapsedTime;

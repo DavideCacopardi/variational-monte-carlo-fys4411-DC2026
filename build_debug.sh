@@ -12,8 +12,8 @@ cmake ..
 # Generate documentation using Doxygen
 make doc > /dev/null
 
-# Make the Makefile using two threads
-make -j2
+# Make the Makefile using eight threads
+make -j8
 
 # Move and rename the executable to the top-directory
 mv vmc ../vmc_debug
