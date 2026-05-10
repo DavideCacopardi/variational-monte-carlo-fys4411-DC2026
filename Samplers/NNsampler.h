@@ -37,12 +37,13 @@ private:
     
     unsigned int m_stepNumber = 0;
     unsigned int m_numberOfAcceptedSteps = 0;
+    double m_acceptanceRatio = 0;
     double m_energy = 0.0;
     double m_cumulativeEnergy = 0.0;
-    double m_A = 0;
-    double m_A2 = 0;
-    double m_cumulativeA = 0;
-    double m_cumulativeA2 = 0;
+    double m_B = 0;
+    double m_B2 = 0;
+    double m_cumulativeB = 0;
+    double m_cumulativeB2 = 0;
     double m_K = 0;
 
     const double c_eps = 1e-12; // against numerical errors
@@ -55,7 +56,10 @@ private:
     // <E O>
     std::vector<double> m_cumulativeEOW;
     std::vector<double> m_EOW;
-    // <A O>
-    std::vector<double> m_cumulativeAOW;
-    std::vector<double> m_AOW;
+    // <B O>
+    std::vector<double> m_cumulativeBOW;
+    std::vector<double> m_BOW;
+    // <B2 O>
+    std::vector<double> m_cumulativeB2OW;
+    std::vector<double> m_B2OW;
 };

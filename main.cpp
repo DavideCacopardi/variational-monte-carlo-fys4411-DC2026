@@ -44,8 +44,8 @@ int main(int argc, char* argv[]) {
     bool useCache = false;
     unsigned int numberOfDimensions = 3;
     unsigned int numberOfParticles = 2;
-    unsigned int numberOfMetropolisSteps = 1e5;
-    unsigned int numberOfEquilibrationSteps = 1e5;
+    unsigned int numberOfMetropolisSteps = 3e4;
+    unsigned int numberOfEquilibrationSteps = 1e4;
     unsigned int finalMClog2steps = log2(1e7);
     unsigned int onebodyDensitySteps = 1e7;
     double omega = 1.0;
@@ -53,15 +53,16 @@ int main(int argc, char* argv[]) {
     double repulsive_a_factor = 0.43;
     // double repulsive_strength = 0;
     double repulsive_strength = numeric_limits<double>::infinity();
-    double timeStep = 2;     // for brute force Metropolis, this corresponds to stepLength
+    double timeStep = 1;     // for brute force Metropolis, this corresponds to stepLength
     double onebodyDensity_rMax = 3.5;
     unsigned int onebodyDensity_nBins = 50;
     double BFGS_tol = 1e-5;     // NLopt's xtol_rel relative tolerance criterion for optimization
     // Next ones are parameters for NNs
-    int Nhid = 32;
+    int Nhid = 10;
     double Adam_tol = 1e-3;
     const double lr = 1e-4;
-    const int nPretrainSteps = 5000;   // maximize K
+    // const int nPretrainSteps = 5000;   // maximize K
+    const int nPretrainSteps = 20;   // maximize K
     const int nEnergySteps = 40000;  // minimize E
     const double strengthRate = 20;   // hardcore potential strength increase per step
 

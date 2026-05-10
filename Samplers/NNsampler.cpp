@@ -29,8 +29,10 @@ m_wf_train(wf_train) {
 
     m_cumulativeOW.assign(m_numberOfParameters, 0);
     m_OW.assign(m_numberOfParameters, 0);
-    m_cumulativeAOW.assign(m_numberOfParameters, 0);
-    m_AOW.assign(m_numberOfParameters, 0);
+    m_cumulativeBOW.assign(m_numberOfParameters, 0);
+    m_BOW.assign(m_numberOfParameters, 0);
+    m_cumulativeB2OW.assign(m_numberOfParameters, 0);
+    m_B2OW.assign(m_numberOfParameters, 0);
     m_cumulativeEOW.assign(m_numberOfParameters, 0);
     m_EOW.assign(m_numberOfParameters, 0);
 }
@@ -67,16 +69,18 @@ void NNsampler::sample_pretrain(bool acceptedStep, System* system) {
     auto OW = system->getWaveFunction().computeLogParDer(system->getParticles());
 
     auto& particles = system->getParticles();
-    double psi = system->getWaveFunction().evaluate(particles);
-    double psi_train = m_wf_train.evaluate(particles);
+    double psi = system->getWaveFunction().evaluate(particles); // NN
+    double psi_train = m_wf_train.evaluate(particles);          // Gaussian
 
-    double A = psi_train / (psi + c_eps);
-    // A = std::max(1e-10, std::min(A, 1e10));
-    m_cumulativeA += A;
-    m_cumulativeA2 += A * A;
-    for (unsigned i = 0; i < m_numberOfParameters; i++) {
-        m_cumulativeOW[i] += OW[i];
-        m_cumulativeAOW[i] += A * OW[i];
+    double B = psi / (psi_train + c_eps);
+    B = std::max(1e-10, std::min(B, 1e10));
+
+    m_cumulativeB += B;
+    m_cumulativeB2 += B * B;
+
+    for (int i = 0; i < m_numberOfParameters; i++) {
+        m_cumulativeBOW[i] += B * OW[i];
+        m_cumulativeB2OW[i] += B * B * OW[i]; // New variable needed!
     }
 
     m_stepNumber++;
@@ -85,16 +89,18 @@ void NNsampler::sample_pretrain(bool acceptedStep, System* system) {
 
 void NNsampler::computeAverages() {
     // const double M = static_cast<double>(m_stepNumber);
-    m_energy = m_cumulativeEnergy / (double) m_stepNumber;
-    m_A = m_cumulativeA / (double) m_stepNumber;
-    m_A2 = m_cumulativeA2 / (double)m_stepNumber;
+    m_acceptanceRatio = m_numberOfAcceptedSteps / (double)m_stepNumber;
+    m_energy = m_cumulativeEnergy / (double)m_stepNumber;
+    m_B = m_cumulativeB / (double)m_stepNumber;
+    m_B2 = m_cumulativeB2 / (double)m_stepNumber;
     for (unsigned i = 0; i < m_numberOfParameters; i++) {
-        m_OW[i] = m_cumulativeOW[i] / (double) m_stepNumber;
-        m_AOW[i] = m_cumulativeAOW[i] / (double) m_stepNumber;
-        m_EOW[i] = m_cumulativeEOW[i] / (double) m_stepNumber;
+        m_OW[i] = m_cumulativeOW[i] / (double)m_stepNumber;
+        m_BOW[i] = m_cumulativeBOW[i] / (double)m_stepNumber;
+        m_B2OW[i] = m_cumulativeB2OW[i] / (double)m_stepNumber;
+        m_EOW[i] = m_cumulativeEOW[i] / (double)m_stepNumber;
     }
 
-    m_K = m_A * m_A / (m_A2 + c_eps);
+    m_K = (m_B * m_B) / (m_B2 + c_eps);
 }
 
 void NNsampler::printOutputToTerminal() {
@@ -104,16 +110,13 @@ void NNsampler::printOutputToTerminal() {
     std::cout << " K : " << m_K << std::endl;
     // cout << " dEdW : " << m_energy << endl;
     std::cout << " Acceptance ratio : "
-        << (double) m_numberOfAcceptedSteps / (double) m_numberOfMetropolisSteps
+        << (double)m_numberOfAcceptedSteps / (double)m_numberOfMetropolisSteps
         << std::endl;
     std::cout << std::endl;
 }
 
 double NNsampler::getEnergy() const { return m_energy; }
-
-double NNsampler::getAcceptanceRatio() const {
-    return (double) m_numberOfAcceptedSteps / (double) m_numberOfMetropolisSteps;
-}
+double NNsampler::getAcceptanceRatio() const { return m_acceptanceRatio; }
 
 std::vector<double> NNsampler::get_dEdW() const {
     std::vector<double> dEdW(m_numberOfParameters);
@@ -126,7 +129,7 @@ std::vector<double> NNsampler::get_dEdW() const {
 std::vector<double> NNsampler::get_dKdW() const {
     std::vector<double> dKdW(m_numberOfParameters);
     for (unsigned i = 0; i < m_numberOfParameters; i++) {
-        dKdW[i] = 2 * m_K * (m_AOW[i] / (m_A + c_eps) - m_OW[i]);
+        dKdW[i] = 2 * m_K * (m_BOW[i] / (m_B + c_eps) - m_B2OW[i] / (m_B2 + c_eps));
     }
     return dKdW;
 }
