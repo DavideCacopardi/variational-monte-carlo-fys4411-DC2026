@@ -5,6 +5,7 @@
 #include "system.h"
 #include "Samplers/energysampler.h"
 #include "Samplers/densitysampler.h"
+#include "Samplers/NNsampler.h"
 #include "particle.h"
 #include "WaveFunctions/wavefunction.h"
 #include "Hamiltonians/hamiltonian.h"
@@ -16,13 +17,27 @@ System::System(
     std::unique_ptr<class Hamiltonian> hamiltonian,
     std::unique_ptr<class WaveFunction> waveFunction,
     std::unique_ptr<class MonteCarlo> solver,
-    std::vector<std::unique_ptr<class Particle>> particles) {
+    std::vector<std::unique_ptr<class Particle>> particles
+) {
     m_numberOfParticles = particles.size();;
     m_numberOfDimensions = particles[0]->getNumberOfDimensions();
     m_hamiltonian = std::move(hamiltonian);
     m_waveFunction = std::move(waveFunction);
     m_solver = std::move(solver);
     m_particles = std::move(particles);
+    if (m_solver->hasAnalyticalOption()) {
+        m_hamiltonian->set_analytic_ifAvailable(m_solver->get_preferAnalytic());
+    }
+}
+
+System::System(
+    std::unique_ptr<class Hamiltonian> hamiltonian,
+    std::unique_ptr<class WaveFunction> waveFunction
+) {
+    m_numberOfParticles = 0;
+    m_numberOfDimensions = 0;
+    m_hamiltonian = std::move(hamiltonian);
+    m_waveFunction = std::move(waveFunction);
     if (m_solver->hasAnalyticalOption()) {
         m_hamiltonian->set_analytic_ifAvailable(m_solver->get_preferAnalytic());
     }
@@ -56,6 +71,55 @@ std::unique_ptr<class EnergySampler> System::runMetropolisSteps(double stepParam
 
         // Sample energy
         sampler->sample(acceptedStep, this, energiesOut);
+    }
+
+    sampler->computeAverages();
+
+    return sampler;
+}
+
+
+std::unique_ptr<NNsampler> System::runMetropolisSteps_NN(double stepParameter,
+    unsigned int numberOfMetropolisSteps, WaveFunction& wf_train) {
+    std::unique_ptr<NNsampler> sampler = std::make_unique<NNsampler>(
+        m_numberOfParticles,
+        m_numberOfDimensions,
+        m_waveFunction->getNumberOfParameters(),
+        stepParameter,
+        numberOfMetropolisSteps,
+        wf_train);
+
+    for (unsigned int i = 0; i < numberOfMetropolisSteps; i++) {
+        /* Call solver method to do a single Monte-Carlo step.
+         */
+        bool acceptedStep = m_solver->step(stepParameter, *m_waveFunction, m_particles);
+
+        // Sample energy
+        sampler->sample(acceptedStep, this);
+    }
+
+    sampler->computeAverages();
+
+    return sampler;
+}
+
+std::unique_ptr<NNsampler> System::runMetropolisSteps_NN_pretrain(double stepParameter,
+    unsigned int numberOfMetropolisSteps, WaveFunction& wf_train) {
+    std::unique_ptr<NNsampler> sampler = std::make_unique<NNsampler>(
+        m_numberOfParticles,
+        m_numberOfDimensions,
+        m_waveFunction->getNumberOfParameters(),
+        stepParameter,
+        numberOfMetropolisSteps,
+        wf_train);
+
+    for (unsigned int i = 0; i < numberOfMetropolisSteps; i++) {
+        /* Call solver method to do a single Monte-Carlo step.
+         */
+        bool acceptedStep = m_solver->step(stepParameter, wf_train, m_particles);
+
+        // Sample 
+        sampler->sample(acceptedStep, this);
     }
 
     sampler->computeAverages();
@@ -101,4 +165,12 @@ double System::computeParamDerivativeLn(unsigned int param_idx) {
 const std::vector<double>& System::getWaveFunctionParameters() {
     // Helper function
     return m_waveFunction->getParameters();
+}
+
+Hamiltonian& System::getHamiltonian() {
+    return *m_hamiltonian;
+}
+
+WaveFunction& System::getWaveFunction() {
+    return *m_waveFunction;
 }

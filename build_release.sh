@@ -7,13 +7,13 @@ mkdir -p build_release
 cd build_release
 
 # Run CMake to create a Release Makefile
-cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$PWD/../libtorch ../
 
 # No need to generate docs twice
 # make doc > /dev/null
 
-# Make the Makefile using eight threads
-make -j8
+# Make the Makefile using four threads
+make -j4
 
 # Move and rename the executable to the top-directory
 mv vmc ../vmc_release

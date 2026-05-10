@@ -30,17 +30,31 @@ public:
      */
     RepulsiveHO(double omega, double omega_z, double repulsive_a_factor);
 
+    /**
+     * @brief Constructs an elliptical trap specifying the hard-core radius.
+     * @param omega Trap frequency in the xy-plane.
+     * @param omega_z Trap frequency along the z-axis.
+     * @param repulsive_a_factor The interaction diameter 'a' in standard units.
+     * @param hardcore_strength Maximum interaction strength.
+     */
+    RepulsiveHO(double omega, double omega_z, double repulsive_a_factor,
+        double hardcore_strength);
+
     double computeLocalEnergy(
         class WaveFunction& waveFunction,
-        std::vector<std::unique_ptr<class Particle>>& particles,
-        class WaveFunctionCache& cache
+        std::vector<std::unique_ptr<class Particle>>& particles
     ) override;
 
-    double getRepulsiveFactor() const override { return m_rep_a; }
+    double getRepulsiveFactor() const { return m_rep_a; }
+
+    void set_hardcore_strength(double strength) {
+        m_strength = strength;
+    }
 
 private:
     double m_omega;
     double m_omega_z;
     double m_rep_a;     ///< Scaled hard-core diameter
+    double m_strength = std::numeric_limits<double>::infinity();
 };
 

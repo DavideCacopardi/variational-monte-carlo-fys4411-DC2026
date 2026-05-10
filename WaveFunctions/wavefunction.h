@@ -63,7 +63,7 @@ public:
      * @return The logarithmic contribution of the specified particle.
      */
     virtual double computeParticleLn(std::vector<std::unique_ptr<Particle>>& particles,
-        unsigned int particle_idx) = 0;
+        unsigned int particle_idx);
 
     /**
      * @brief Computes the Laplacian (sum of second derivatives) of the wave function.
@@ -107,6 +107,10 @@ public:
     double computeNumericalDoubleDerivative(std::vector<std::unique_ptr<class Particle>>& particles);
     double computeNumericalParamDerivativeLn(std::vector<std::unique_ptr<class Particle>>& particles, unsigned int param_idx);
     std::vector<double> computeNumericalQuantumForce(std::vector<std::unique_ptr<class Particle>>& particles, unsigned int particle_idx);
+
+    virtual std::vector<double> computeLogParDer(std::vector<std::unique_ptr<class Particle>>& particles) {
+        return std::vector<double>();
+    }
 
 protected:
     int m_numberOfParameters = 0;

@@ -29,6 +29,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -march=native -flto -fno-math-errno")
 # Find packages
 find_package(Armadillo REQUIRED)
 find_package(NLopt REQUIRED)
+find_package(Torch REQUIRED)
 
 # Add directories containing header-files
 include_directories(
@@ -58,7 +59,8 @@ file(
 # Create executable called "vmc"
 add_executable(vmc ${SOURCES})
 
-target_link_libraries(vmc PRIVATE ${ARMADILLO_LIBRARIES} ${NLOPT_LIBRARIES})
+target_link_libraries(vmc PRIVATE ${ARMADILLO_LIBRARIES} ${NLOPT_LIBRARIES} ${TORCH_LIBRARIES})
+target_compile_options(vmc PRIVATE ${TORCH_CXX_FLAGS})
 
 find_package(Doxygen)
 

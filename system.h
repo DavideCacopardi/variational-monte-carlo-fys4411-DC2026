@@ -22,7 +22,13 @@ public:
         std::unique_ptr<class Hamiltonian> hamiltonian,
         std::unique_ptr<class WaveFunction> waveFunction,
         std::unique_ptr<class MonteCarlo> solver,
-        std::vector<std::unique_ptr<class Particle>> particles);
+        std::vector<std::unique_ptr<class Particle>> particles
+    );
+
+    System(
+        std::unique_ptr<class Hamiltonian> hamiltonian,
+        std::unique_ptr<class WaveFunction> waveFunction
+    );
 
     /**
      * @brief Executes equilibration (thermalization) steps.
@@ -47,6 +53,12 @@ public:
         double stepParameter,
         unsigned int numberOfMetropolisSteps,
         std::ofstream* energiesOut = nullptr);
+
+    std::unique_ptr<class NNsampler> runMetropolisSteps_NN(double stepParameter,
+        unsigned int numberOfMetropolisSteps, WaveFunction& wf_train);
+
+    std::unique_ptr<class NNsampler> runMetropolisSteps_NN_pretrain(double stepParameter,
+        unsigned int numberOfMetropolisSteps, WaveFunction& wf_train);
 
     /**
      * @brief Executes a Metropolis simulation dedicated to density sampling.
@@ -74,6 +86,9 @@ public:
      */
     double computeParamDerivativeLn(unsigned int param_idx);
 
+    class WaveFunction& getWaveFunction();
+    class Hamiltonian& getHamiltonian();
+
     /**
      * @brief Gets the current variational parameters.
      * @return Vector containing the wave function's parameters.
@@ -82,9 +97,14 @@ public:
 
     /**
      * @brief Retrieves the particles currently in the system.
-     * @return Constant reference to the vector of particle pointers.
+     * @return Reference to the vector of particle pointers.
      */
-    const std::vector<std::unique_ptr<class Particle>>& getParticles() const { return m_particles; }
+    std::vector<std::unique_ptr<class Particle>>& getParticles() { return m_particles; }
+
+    void setParticles(std::vector<std::unique_ptr<class Particle>> new_particles);
+    void setSolver(std::unique_ptr<class MonteCarlo> new_solver);
+    void setHamiltonian(std::unique_ptr<class Hamiltonian> new_hamiltonian);
+    std::unique_ptr<WaveFunction> setWaveFunction(std::unique_ptr<WaveFunction> new_waveFunction);
 
 private:
     unsigned int m_numberOfParticles = 0;
