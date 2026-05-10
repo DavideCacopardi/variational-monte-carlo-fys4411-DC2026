@@ -54,8 +54,13 @@ torch::Tensor NeuralNetwork::log_forward(torch::Tensor input) {
 
     hidden = torch::tanh(hidden);
     torch::Tensor u_out = torch::mv(hidden, m_W2);
+    u_out = torch::clamp(u_out, -20.0, 20.0);    // should be safe for double
 
-    return torch::clamp(u_out, -20.0, 20.0);    // should be safe for double
+    // Gaussian Envelope (-0.5 * r^2)   !!!! THIS HAS TO BE CHANGED ACCORDING TO XI
+    torch::Tensor r_squared = input.pow(2).sum(-1, /*keepdim=*/true);
+    torch::Tensor gauss_envelope = -0.5 * r_squared;
+
+    return u_out + gauss_envelope;
 }
 
 torch::Tensor NeuralNetwork::forward(torch::Tensor input) {
