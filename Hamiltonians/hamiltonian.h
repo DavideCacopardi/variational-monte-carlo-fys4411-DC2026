@@ -5,7 +5,7 @@
 /**
  * @brief Abstract base class for the quantum system's Hamiltonian.
  * * Defines the interface for evaluating the local energy of the system.
- * Specific physics problems (e.g., interacting vs. non-interacting) will 
+ * Specific physics problems (e.g., interacting vs. non-interacting) will
  * inherit from this class and implement their own energy calculations.
  */
 class Hamiltonian {
@@ -15,7 +15,7 @@ public:
 
     /**
      * @brief Computes the local energy of the current particle configuration.
-     * * The local energy is defined as E_L = (1 / Psi) * H * Psi, where H is the 
+     * * The local energy is defined as E_L = (1 / Psi) * H * Psi, where H is the
      * Hamiltonian operator and Psi is the trial wave function.
      * * @param waveFunction Reference to the system's trial wave function.
      * @param particles Vector of unique pointers to the system's particles.
@@ -26,12 +26,16 @@ public:
         class WaveFunction& waveFunction,
         std::vector<std::unique_ptr<class Particle>>& particles,
         class WaveFunctionCache& cache
-    );
+    ) {
+        return -123;
+    }
 
     virtual double computeLocalEnergy(
         class WaveFunction& waveFunction,
         std::vector<std::unique_ptr<class Particle>>& particles
-    );
+    ) {
+        return -123;
+    }
 
     /**
      * @brief Toggles the use of analytical derivatives for kinetic energy.
@@ -45,7 +49,9 @@ public:
      */
     virtual double getRepulsiveFactor() const { return 0.0; }
 
-    virtual void set_hardcore_strength(double strength);
+    virtual double get_hardcore_strength() const { return 0.0; }
+
+    virtual void set_hardcore_strength(double strength) {}
 protected:
     bool m_analytic_ifAvailable = true;
 };

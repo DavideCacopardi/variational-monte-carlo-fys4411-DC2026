@@ -11,12 +11,12 @@ public:
         unsigned int numberOfParticles,
         unsigned int numberOfDimensions,
         unsigned int numberOfParameters,
-        double stepLength,
         unsigned int numberOfMetropolisSteps,
         WaveFunction& wf_train
     );
 
-    void sample(bool acceptedStep, class System* system);
+    void sample_train(bool acceptedStep, class System* system);
+    void sample_pretrain(bool acceptedStep, class System* system);
     void computeAverages();
     void printOutputToTerminal();
 
@@ -31,15 +31,14 @@ private:
     unsigned int m_numberOfParticles = 0;
     unsigned int m_numberOfDimensions = 0;
     unsigned int m_numberOfParameters = 0;
-    unsigned int m_stepNumber = 0;
     unsigned int m_numberOfMetropolisSteps = 0;
     WaveFunction& m_wf_train;
     bool m_storeEnergyHistory = false;
     
+    unsigned int m_stepNumber = 0;
     unsigned int m_numberOfAcceptedSteps = 0;
     double m_energy = 0.0;
     double m_cumulativeEnergy = 0.0;
-    double m_stepLength = 0.0;
     double m_A = 0;
     double m_A2 = 0;
     double m_cumulativeA = 0;

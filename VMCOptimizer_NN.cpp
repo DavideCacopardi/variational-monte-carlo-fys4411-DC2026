@@ -97,6 +97,8 @@ std::vector<double> VMCOptimizer_NN::optimize(std::unique_ptr<WaveFunction> wf_t
     for (unsigned i = 0; i < m_numberOfParticles; i++)
         for (unsigned j = 0; j < m_numberOfDimensions; j++)
             saved_pos[i].push_back(system->getParticles()[i]->getPosition()[j]);
+    auto tempsampler = system->runMetropolisSteps(m_timeStep, m_nSamples * 10);
+    std::cout << "DEBUG: tempsampler energy = " << tempsampler->getEnergy() << std::endl;
 
     wf_train = std::move(system->setWaveFunction(std::move(wf_nn)));
 
@@ -104,7 +106,7 @@ std::vector<double> VMCOptimizer_NN::optimize(std::unique_ptr<WaveFunction> wf_t
         // reset positions
         for (unsigned i = 0; i < m_numberOfParticles; i++)
             for (unsigned j = 0; j < m_numberOfDimensions; j++)
-                system->getParticles()[i]->setPosition(j, saved_pos[i][j]);
+                system->getParticles()[i]->setPosition(saved_pos[i][j], j);
 
         // system->runEquilibrationSteps(stepParam, 50);
         std::unique_ptr<NNsampler> sampler =
@@ -115,12 +117,15 @@ std::vector<double> VMCOptimizer_NN::optimize(std::unique_ptr<WaveFunction> wf_t
             g = -g;
         }
 
+        tempsampler = system->runMetropolisSteps(m_timeStep, m_nSamples);
+        std::cout << "DEBUG: tempsampler energy = " << tempsampler->getEnergy() << std::endl;
+
         optimizer.zero_grad();
         nnptr->setGrads(dKdW);
         torch::nn::utils::clip_grad_norm_(nnptr->parameters(), 10);   // for stability
         optimizer.step();
 
-        if (step % 5 == 0) {
+        if (step % 1 == 0) {
             std::cout << "  step " << step
                 << "  K = " << std::scientific << std::setprecision(9) << sampler->get_K()
                 << "\t  E = " << std::setprecision(9) << sampler->getEnergy() << "\n";

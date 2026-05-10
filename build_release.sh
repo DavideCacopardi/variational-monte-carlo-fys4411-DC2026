@@ -12,8 +12,8 @@ cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$PWD/../libtorch ../
 # No need to generate docs twice
 # make doc > /dev/null
 
-# Make the Makefile using four threads
-make -j4
+# Make the Makefile using x threads
+make -j6
 
 # Move and rename the executable to the top-directory
 mv vmc ../vmc_release

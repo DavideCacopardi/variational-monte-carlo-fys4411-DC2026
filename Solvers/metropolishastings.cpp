@@ -11,8 +11,8 @@
 
 using namespace CommonUtils;
 
-MetropolisHastings::MetropolisHastings(std::unique_ptr<class Random> rng, bool preferAnalytic)
-    : MonteCarlo(std::move(rng)), m_preferAnalytic(preferAnalytic) {}
+MetropolisHastings::MetropolisHastings(std::unique_ptr<class Random> rng, bool preferAnalytic, bool useCache)
+    : MonteCarlo(std::move(rng), preferAnalytic, useCache) {}
 
 
 /*
@@ -54,8 +54,11 @@ bool MetropolisHastings::step(double timeStep, class WaveFunction& waveFunction,
 */
 
 bool MetropolisHastings::step(double timeStep, class WaveFunction& waveFunction,
-    std::vector<std::unique_ptr<Particle>>& particles) {
+    std::vector<std::unique_ptr<Particle>>& particles) {    
     // Perform the actual Metropolis-Hastings step
+
+    if (!m_useCache)
+        throw std::invalid_argument("Use cache=false not implemented yet for MH.");
 
     if (!m_cache)
         m_cache = std::make_unique<WaveFunctionCache>(waveFunction, particles);

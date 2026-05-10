@@ -2,6 +2,5 @@
 #include "Math/random.h"
 
 
-MonteCarlo::MonteCarlo(std::unique_ptr<class Random> rng, bool preferAnalytic) {
-    m_rng = std::move(rng);
-}
+MonteCarlo::MonteCarlo(std::unique_ptr<class Random> rng, bool preferAnalytic, bool useCache)
+    : m_rng(std::move(rng)), m_preferAnalytic(preferAnalytic), m_useCache(useCache) {}

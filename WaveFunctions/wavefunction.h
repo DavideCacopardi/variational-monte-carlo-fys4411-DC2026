@@ -63,7 +63,7 @@ public:
      * @return The logarithmic contribution of the specified particle.
      */
     virtual double computeParticleLn(std::vector<std::unique_ptr<Particle>>& particles,
-        unsigned int particle_idx);
+        unsigned int particle_idx) { return 0; }
 
     /**
      * @brief Computes the Laplacian (sum of second derivatives) of the wave function.

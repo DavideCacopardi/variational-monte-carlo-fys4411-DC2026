@@ -38,19 +38,22 @@ using SolverFactory = function<unique_ptr<MonteCarlo>(unique_ptr<Random>)>;
 int main(int argc, char* argv[]) {
     // --- Parameters ---
     string hamiltonianType = "RepulsiveHO";  // HarmonicOscillator or RepulsiveHO
-    string waveFunctionType = "RepEllipticGaussian";     // SimpleGaussian or EllipticGaussian or RepEllipticGaussian
-    string solverType = "MetropolisHastings";         // Metropolis or MetropolisHastings
-    bool preferAnalytic = true;
+    string waveFunctionType = "EllipticGaussian";     // SimpleGaussian or EllipticGaussian or RepEllipticGaussian (this last one is designed only for infinite repulsion strength)
+    string solverType = "Metropolis";         // Metropolis or MetropolisHastings
+    bool preferAnalytic = false;
+    bool useCache = false;
     unsigned int numberOfDimensions = 3;
-    unsigned int numberOfParticles = 10;
-    unsigned int numberOfMetropolisSteps = 1e6;
+    unsigned int numberOfParticles = 2;
+    unsigned int numberOfMetropolisSteps = 1e5;
     unsigned int numberOfEquilibrationSteps = 1e5;
     unsigned int finalMClog2steps = log2(1e7);
     unsigned int onebodyDensitySteps = 1e7;
     double omega = 1.0;
     double omega_z = 1.0;
-    double repulsive_a_factor = 0.0042;
-    double timeStep = 0.05;     // for brute force Metropolis, this corresponds to stepLength
+    double repulsive_a_factor = 0.43;
+    // double repulsive_strength = 0;
+    double repulsive_strength = numeric_limits<double>::infinity();
+    double timeStep = 2;     // for brute force Metropolis, this corresponds to stepLength
     double onebodyDensity_rMax = 3.5;
     unsigned int onebodyDensity_nBins = 50;
     double BFGS_tol = 1e-5;     // NLopt's xtol_rel relative tolerance criterion for optimization
@@ -60,13 +63,12 @@ int main(int argc, char* argv[]) {
     const double lr = 1e-4;
     const int nPretrainSteps = 5000;   // maximize K
     const int nEnergySteps = 40000;  // minimize E
-    const int nSamples = 100000;  // Metropolis steps per update
     const double strengthRate = 20;   // hardcore potential strength increase per step
 
     // int seed = 0;    // if seed == 0, seed is chosen randomly at each RNG construction
     int seed = chrono::system_clock::now().time_since_epoch().count();
     // vector<double> initialParams = { 0.75 };
-    vector<double> initialParams = { 0.50 , 2.8243 };
+    vector<double> initialParams = { 0.50 , 1 };
 
     chrono::high_resolution_clock::time_point watch_start, watch_end;
     chrono::duration<double> elapsedTime;
@@ -130,7 +132,7 @@ int main(int argc, char* argv[]) {
         if (hamiltonianType == "HarmonicOscillator")
             return make_unique<HarmonicOscillator>(omega);
         else // default to Repulsive
-            return make_unique<RepulsiveHO>(omega, omega_z, repulsive_a_factor);
+            return make_unique<RepulsiveHO>(omega, omega_z, repulsive_a_factor, repulsive_strength);
         };
     WaveFunctionFactory wfFac = [=](const vector<double>& p) -> unique_ptr<WaveFunction> {
         if (waveFunctionType == "SimpleGaussian")
@@ -144,10 +146,10 @@ int main(int argc, char* argv[]) {
         };
     SolverFactory solverFac = [=](unique_ptr<Random> rng) -> unique_ptr<MonteCarlo> {
         if (solverType == "Metropolis") {
-            return make_unique<Metropolis>(move(rng), preferAnalytic);
+            return make_unique<Metropolis>(move(rng), preferAnalytic, useCache);
         }
         else // default to Metropolis-Hastings
-            return make_unique<MetropolisHastings>(move(rng), preferAnalytic);
+            return make_unique<MetropolisHastings>(move(rng), preferAnalytic, useCache);
         };
 
     // --- Build MC engine ---
@@ -264,7 +266,7 @@ int main(int argc, char* argv[]) {
             seed,
             Nhid,
             numberOfEquilibrationSteps,
-            nSamples,
+            numberOfMetropolisSteps,
             nPretrainSteps,
             nEnergySteps,
             strengthRate,

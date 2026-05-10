@@ -15,13 +15,11 @@ NNsampler::NNsampler(
     unsigned int numberOfParticles,
     unsigned int numberOfDimensions,
     unsigned int numberOfParameters,
-    double stepLength,
     unsigned int numberOfMetropolisSteps,
     WaveFunction& wf_train
 ) : m_numberOfParticles(numberOfParticles),
 m_numberOfDimensions(numberOfDimensions),
 m_numberOfParameters(numberOfParameters),
-m_stepLength(stepLength),
 m_numberOfMetropolisSteps(numberOfMetropolisSteps),
 m_wf_train(wf_train) {
 
@@ -37,9 +35,9 @@ m_wf_train(wf_train) {
     m_EOW.assign(m_numberOfParameters, 0);
 }
 
-void NNsampler::sample(bool acceptedStep, System* system) {
-    auto* rbm = dynamic_cast<NN_envelope*>(&system->getWaveFunction());
-    if (rbm == nullptr) {
+void NNsampler::sample_train(bool acceptedStep, System* system) {
+    auto* ptr = dynamic_cast<NN_envelope*>(&system->getWaveFunction());
+    if (ptr == nullptr) {
         throw std::logic_error("NNsampler requires a NN_envelope wave function.");
     }
 
@@ -51,6 +49,23 @@ void NNsampler::sample(bool acceptedStep, System* system) {
 
     m_cumulativeEnergy += localEnergy;
 
+    for (unsigned i = 0; i < m_numberOfParameters; i++) {
+        m_cumulativeOW[i] += OW[i];
+        m_cumulativeEOW[i] += localEnergy * OW[i];
+    }
+
+    m_stepNumber++;
+    m_numberOfAcceptedSteps += acceptedStep;
+}
+
+void NNsampler::sample_pretrain(bool acceptedStep, System* system) {
+    auto* ptr = dynamic_cast<NN_envelope*>(&system->getWaveFunction());
+    if (ptr == nullptr) {
+        throw std::logic_error("NNsampler requires a NN_envelope wave function.");
+    }
+
+    auto OW = system->getWaveFunction().computeLogParDer(system->getParticles());
+
     auto& particles = system->getParticles();
     double psi = system->getWaveFunction().evaluate(particles);
     double psi_train = m_wf_train.evaluate(particles);
@@ -59,10 +74,9 @@ void NNsampler::sample(bool acceptedStep, System* system) {
     // A = std::max(1e-10, std::min(A, 1e10));
     m_cumulativeA += A;
     m_cumulativeA2 += A * A;
-    for (int i = 0; i < m_numberOfParameters; i++) {
+    for (unsigned i = 0; i < m_numberOfParameters; i++) {
         m_cumulativeOW[i] += OW[i];
         m_cumulativeAOW[i] += A * OW[i];
-        m_cumulativeEOW[i] += localEnergy * OW[i];
     }
 
     m_stepNumber++;
@@ -74,7 +88,7 @@ void NNsampler::computeAverages() {
     m_energy = m_cumulativeEnergy / (double) m_stepNumber;
     m_A = m_cumulativeA / (double) m_stepNumber;
     m_A2 = m_cumulativeA2 / (double)m_stepNumber;
-    for (int i = 0; i < m_numberOfParameters; i++) {
+    for (unsigned i = 0; i < m_numberOfParameters; i++) {
         m_OW[i] = m_cumulativeOW[i] / (double) m_stepNumber;
         m_AOW[i] = m_cumulativeAOW[i] / (double) m_stepNumber;
         m_EOW[i] = m_cumulativeEOW[i] / (double) m_stepNumber;
@@ -103,7 +117,7 @@ double NNsampler::getAcceptanceRatio() const {
 
 std::vector<double> NNsampler::get_dEdW() const {
     std::vector<double> dEdW(m_numberOfParameters);
-    for (int i = 0; i < m_numberOfParameters; i++) {
+    for (unsigned i = 0; i < m_numberOfParameters; i++) {
         dEdW[i] = 2 * (m_EOW[i] - m_energy * m_OW[i]);
     }
     return dEdW;
@@ -111,7 +125,7 @@ std::vector<double> NNsampler::get_dEdW() const {
 
 std::vector<double> NNsampler::get_dKdW() const {
     std::vector<double> dKdW(m_numberOfParameters);
-    for (int i = 0; i < m_numberOfParameters; i++) {
+    for (unsigned i = 0; i < m_numberOfParameters; i++) {
         dKdW[i] = 2 * m_K * (m_AOW[i] / (m_A + c_eps) - m_OW[i]);
     }
     return dKdW;

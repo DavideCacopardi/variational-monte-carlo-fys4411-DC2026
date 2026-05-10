@@ -9,8 +9,8 @@
 
 using namespace CommonUtils;
 
-Metropolis::Metropolis(std::unique_ptr<class Random> rng, bool preferAnalytic)
-    : MonteCarlo(std::move(rng)), m_preferAnalytic(preferAnalytic) {}
+Metropolis::Metropolis(std::unique_ptr<class Random> rng, bool preferAnalytic, bool useCache)
+    : MonteCarlo(std::move(rng), preferAnalytic, useCache) {}
 
 
 bool Metropolis::step(
@@ -22,8 +22,10 @@ bool Metropolis::step(
      * accepted by the Metropolis test (compare the wave function evaluated at
      * this new position with the one at the old position).
      */
-    if (!m_cache)
+    if (m_useCache && !m_cache)
         m_cache = std::make_unique<WaveFunctionCache>(waveFunction, particles);
+
+    double psi_old = waveFunction.evaluate(particles);
 
     unsigned int particle_idx = m_rng->nextInt(particles.size() - 1);
 
@@ -34,11 +36,15 @@ bool Metropolis::step(
         particles[particle_idx]->adjustPosition(displacement[i], i);
     }
 
-    double lnRatio = m_cache->computeLnRatio(particles, particle_idx);
+    double ratio = m_useCache ?
+        m_cache->computeLnRatio(particles, particle_idx) : sq(waveFunction.evaluate(particles) / psi_old);
 
-    bool accepted = m_rng->nextDouble() <= exp(2.0 * lnRatio);
+    bool accepted = m_useCache ?
+        m_rng->nextDouble() <= exp(2.0 * ratio) : m_rng->nextDouble() <= sq(ratio);
     if (accepted) {
-        m_cache->acceptMove(particles);
+        if (m_useCache) {
+            m_cache->acceptMove(particles);
+        }
     }
     else {
         for (unsigned int i = 0; i < numberOfDimensions; i++) {

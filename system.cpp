@@ -38,9 +38,6 @@ System::System(
     m_numberOfDimensions = 0;
     m_hamiltonian = std::move(hamiltonian);
     m_waveFunction = std::move(waveFunction);
-    if (m_solver->hasAnalyticalOption()) {
-        m_hamiltonian->set_analytic_ifAvailable(m_solver->get_preferAnalytic());
-    }
 }
 
 
@@ -85,7 +82,6 @@ std::unique_ptr<NNsampler> System::runMetropolisSteps_NN(double stepParameter,
         m_numberOfParticles,
         m_numberOfDimensions,
         m_waveFunction->getNumberOfParameters(),
-        stepParameter,
         numberOfMetropolisSteps,
         wf_train);
 
@@ -95,7 +91,7 @@ std::unique_ptr<NNsampler> System::runMetropolisSteps_NN(double stepParameter,
         bool acceptedStep = m_solver->step(stepParameter, *m_waveFunction, m_particles);
 
         // Sample energy
-        sampler->sample(acceptedStep, this);
+        sampler->sample_train(acceptedStep, this);
     }
 
     sampler->computeAverages();
@@ -109,7 +105,6 @@ std::unique_ptr<NNsampler> System::runMetropolisSteps_NN_pretrain(double stepPar
         m_numberOfParticles,
         m_numberOfDimensions,
         m_waveFunction->getNumberOfParameters(),
-        stepParameter,
         numberOfMetropolisSteps,
         wf_train);
 
@@ -119,7 +114,7 @@ std::unique_ptr<NNsampler> System::runMetropolisSteps_NN_pretrain(double stepPar
         bool acceptedStep = m_solver->step(stepParameter, wf_train, m_particles);
 
         // Sample 
-        sampler->sample(acceptedStep, this);
+        sampler->sample_pretrain(acceptedStep, this);
     }
 
     sampler->computeAverages();
@@ -153,8 +148,14 @@ std::unique_ptr<class DensitySampler> System::runMetropolisStepsOnebodyDensity(d
 }
 
 double System::computeLocalEnergy() {
-    return m_hamiltonian->computeLocalEnergy(
-        *m_waveFunction, m_particles, m_solver->getCache());
+    if (m_solver->get_useCache()) {
+        return m_hamiltonian->computeLocalEnergy(
+            *m_waveFunction, m_particles, m_solver->getCache());
+    }
+    else {
+        return m_hamiltonian->computeLocalEnergy(
+            *m_waveFunction, m_particles);    
+    }
 }
 
 double System::computeParamDerivativeLn(unsigned int param_idx) {
@@ -173,4 +174,27 @@ Hamiltonian& System::getHamiltonian() {
 
 WaveFunction& System::getWaveFunction() {
     return *m_waveFunction;
+}
+
+void System::setParticles(std::vector<std::unique_ptr<Particle>> new_particles) {
+    m_particles = std::move(new_particles);
+    m_numberOfParticles = m_particles.size();
+    m_numberOfDimensions = m_particles[0]->getNumberOfDimensions();
+}
+
+void System::setSolver(std::unique_ptr<MonteCarlo> new_solver) {
+    m_solver = std::move(new_solver);
+    if (m_solver->hasAnalyticalOption()) {
+        m_hamiltonian->set_analytic_ifAvailable(m_solver->get_preferAnalytic());
+    }
+}
+
+void System::setHamiltonian(std::unique_ptr<Hamiltonian> new_hamiltonian) {
+    m_hamiltonian = std::move(new_hamiltonian);
+}
+
+std::unique_ptr<WaveFunction> System::setWaveFunction(std::unique_ptr<WaveFunction> new_waveFunction) {
+    auto temp = std::move(m_waveFunction);
+    m_waveFunction = std::move(new_waveFunction);
+    return temp;
 }
