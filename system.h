@@ -54,8 +54,8 @@ public:
         unsigned int numberOfMetropolisSteps,
         std::ofstream* energiesOut = nullptr);
 
-    std::unique_ptr<class NNsampler> runMetropolisSteps_NN(double stepParameter,
-        unsigned int numberOfMetropolisSteps, WaveFunction& wf_train);
+    // std::unique_ptr<class NNsampler> runMetropolisSteps_NN(double stepParameter,
+    //     unsigned int numberOfMetropolisSteps, WaveFunction& wf_train);
 
     std::unique_ptr<class NNsampler> runMetropolisSteps_NN_pretrain(double stepParameter,
         unsigned int numberOfMetropolisSteps, WaveFunction& wf_train);
@@ -85,6 +85,8 @@ public:
      * @return Value of the logarithmic derivative evaluated at the current position.
      */
     double computeParamDerivativeLn(unsigned int param_idx);
+
+    std::vector<double> computeLogParDer_vect();
 
     class WaveFunction& getWaveFunction();
     class Hamiltonian& getHamiltonian();

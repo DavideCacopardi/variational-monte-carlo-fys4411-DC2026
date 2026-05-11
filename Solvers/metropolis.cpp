@@ -25,7 +25,7 @@ bool Metropolis::step(
     if (m_useCache && !m_cache)
         m_cache = std::make_unique<WaveFunctionCache>(waveFunction, particles);
 
-    double psi_old = waveFunction.evaluate(particles);
+    double psi_old = m_useCache ? 0 : waveFunction.evaluate(particles);
 
     unsigned int particle_idx = m_rng->nextInt(particles.size() - 1);
 
@@ -37,7 +37,7 @@ bool Metropolis::step(
     }
 
     double ratio = m_useCache ?
-        m_cache->computeLnRatio(particles, particle_idx) : sq(waveFunction.evaluate(particles) / psi_old);
+        m_cache->computeLnRatio(particles, particle_idx) : waveFunction.evaluate(particles) / psi_old;
 
     bool accepted = m_useCache ?
         m_rng->nextDouble() <= exp(2.0 * ratio) : m_rng->nextDouble() <= sq(ratio);

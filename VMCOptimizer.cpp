@@ -45,14 +45,14 @@ std::vector<double> VMCOptimizer::optimize(std::vector<double> params) {
     // print log header
     if (m_logfile) {
         *m_logfile << "#";
-        const unsigned int width = 17;
+        const unsigned int width = 20;
         for (unsigned int i = 0; i < params.size(); i++) {
             std::string temp = "p[" + std::to_string(i) + "],";
             *m_logfile << std::setw(width - (i == 0)) << temp;
         }
         *m_logfile << std::setw(width) << "energy," << std::setw(width) << "variance,"
             << std::setw(width) << "error," << std::setw(width) << "elapsed time,"
-            << std::setw(width) << "acceptance ratio" << std::endl;
+            << std::setw(width) << "acceptance ratio " << std::endl;
     }
 
     nlopt::opt lib_optimizer(nlopt::LD_LBFGS, params.size());

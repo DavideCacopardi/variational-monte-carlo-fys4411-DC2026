@@ -57,38 +57,40 @@ bool MetropolisHastings::step(double timeStep, class WaveFunction& waveFunction,
     std::vector<std::unique_ptr<Particle>>& particles) {    
     // Perform the actual Metropolis-Hastings step
 
-    if (!m_useCache)
-        throw std::invalid_argument("Use cache=false not implemented yet for MH.");
-
     if (!m_cache)
         m_cache = std::make_unique<WaveFunctionCache>(waveFunction, particles);
 
+    double psi_old = m_useCache ? 0 : waveFunction.evaluate(particles);
+
     unsigned int particle_idx = m_rng->nextInt(0, particles.size() - 1);
     std::vector<double> qforceold = waveFunction.computeQuantumForce(particles, particle_idx);
-
+    
     unsigned int numberOfDimensions = particles[particle_idx]->getNumberOfDimensions();
     std::vector<double> displacement(numberOfDimensions);
-
     // update position
     for (unsigned int i = 0; i < numberOfDimensions; i++) {
         displacement[i] = m_rng->nextGaussian(0.0, 1.0) * sqrt(timeStep) + qforceold[i] * timeStep * m_D;
         particles[particle_idx]->adjustPosition(displacement[i], i);
     }
-    double lnRatio = m_cache->computeLnRatio(particles, particle_idx);
+    double ratio = m_useCache ?
+        m_cache->computeLnRatio(particles, particle_idx) : waveFunction.evaluate(particles) / psi_old;
     std::vector<double> qforcenew = waveFunction.computeQuantumForce(particles, particle_idx);
-
+    
     // evaluate GreensFunction
     double GreensFunction = 0;
     for (unsigned int i = 0; i < numberOfDimensions; i++) {
         GreensFunction += 0.5 * (qforceold[i] + qforcenew[i]) *
-            (m_D * timeStep * 0.5 * (qforceold[i] - qforcenew[i]) - displacement[i]);
+        (m_D * timeStep * 0.5 * (qforceold[i] - qforcenew[i]) - displacement[i]);
     }
     GreensFunction = exp(GreensFunction);
 
     // accept or reject
-    bool accepted = m_rng->nextDouble() <= GreensFunction * exp(2.0 * lnRatio);
+    bool accepted = m_useCache ?
+        m_rng->nextDouble() <= GreensFunction * exp(2.0 * ratio) : m_rng->nextDouble() <= GreensFunction * sq(ratio);
     if (accepted) {
-        m_cache->acceptMove(particles);
+        if (m_useCache) {
+            m_cache->acceptMove(particles);
+        }
     }
     else {
         for (unsigned int i = 0; i < numberOfDimensions; i++) {

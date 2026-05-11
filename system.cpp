@@ -76,28 +76,28 @@ std::unique_ptr<class EnergySampler> System::runMetropolisSteps(double stepParam
 }
 
 
-std::unique_ptr<NNsampler> System::runMetropolisSteps_NN(double stepParameter,
-    unsigned int numberOfMetropolisSteps, WaveFunction& wf_train) {
-    std::unique_ptr<NNsampler> sampler = std::make_unique<NNsampler>(
-        m_numberOfParticles,
-        m_numberOfDimensions,
-        m_waveFunction->getNumberOfParameters(),
-        numberOfMetropolisSteps,
-        wf_train);
+// std::unique_ptr<NNsampler> System::runMetropolisSteps_NN(double stepParameter,
+//     unsigned int numberOfMetropolisSteps, WaveFunction& wf_train) {
+//     std::unique_ptr<NNsampler> sampler = std::make_unique<NNsampler>(
+//         m_numberOfParticles,
+//         m_numberOfDimensions,
+//         m_waveFunction->getNumberOfParameters(),
+//         numberOfMetropolisSteps,
+//         wf_train);
 
-    for (unsigned int i = 0; i < numberOfMetropolisSteps; i++) {
-        /* Call solver method to do a single Monte-Carlo step.
-         */
-        bool acceptedStep = m_solver->step(stepParameter, *m_waveFunction, m_particles);
+//     for (unsigned int i = 0; i < numberOfMetropolisSteps; i++) {
+//         /* Call solver method to do a single Monte-Carlo step.
+//          */
+//         bool acceptedStep = m_solver->step(stepParameter, *m_waveFunction, m_particles);
 
-        // Sample energy
-        sampler->sample_train(acceptedStep, this);
-    }
+//         // Sample energy
+//         sampler->sample_train(acceptedStep, this);
+//     }
 
-    sampler->computeAverages();
+//     sampler->computeAverages();
 
-    return sampler;
-}
+//     return sampler;
+// }
 
 std::unique_ptr<NNsampler> System::runMetropolisSteps_NN_pretrain(double stepParameter,
     unsigned int numberOfMetropolisSteps, WaveFunction& wf_train) {
@@ -105,6 +105,7 @@ std::unique_ptr<NNsampler> System::runMetropolisSteps_NN_pretrain(double stepPar
         m_numberOfParticles,
         m_numberOfDimensions,
         m_waveFunction->getNumberOfParameters(),
+        stepParameter,
         numberOfMetropolisSteps,
         wf_train);
 
@@ -114,7 +115,7 @@ std::unique_ptr<NNsampler> System::runMetropolisSteps_NN_pretrain(double stepPar
         bool acceptedStep = m_solver->step(stepParameter, wf_train, m_particles);
 
         // Sample 
-        sampler->sample_pretrain(acceptedStep, this);
+        sampler->sample(acceptedStep, this);
     }
 
     sampler->computeAverages();
@@ -161,6 +162,11 @@ double System::computeLocalEnergy() {
 double System::computeParamDerivativeLn(unsigned int param_idx) {
     // Helper function
     return m_waveFunction->computeParamDerivativeLn(m_particles, param_idx);
+}
+
+std::vector<double> System::computeLogParDer_vect() {
+    // Helper function
+    return m_waveFunction->computeLogParDer_vect(m_particles);
 }
 
 const std::vector<double>& System::getWaveFunctionParameters() {

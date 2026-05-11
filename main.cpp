@@ -38,38 +38,39 @@ using SolverFactory = function<unique_ptr<MonteCarlo>(unique_ptr<Random>)>;
 int main(int argc, char* argv[]) {
     // --- Parameters ---
     string hamiltonianType = "RepulsiveHO";  // HarmonicOscillator or RepulsiveHO
-    string waveFunctionType = "EllipticGaussian";     // SimpleGaussian or EllipticGaussian or RepEllipticGaussian (this last one is designed only for infinite repulsion strength)
-    string solverType = "Metropolis";         // Metropolis or MetropolisHastings
+    string waveFunctionType = "EllipticGaussian"; // SimpleGaussian or EllipticGaussian or RepEllipticGaussian (this last one is designed only for infinite repulsion strength)
+    string solverType = "MetropolisHastings";         // Metropolis or MetropolisHastings
     bool preferAnalytic = false;
     bool useCache = false;
     unsigned int numberOfDimensions = 3;
     unsigned int numberOfParticles = 2;
-    unsigned int numberOfMetropolisSteps = 2e4;
+    unsigned int numberOfMetropolisSteps = 5e3;
     unsigned int numberOfEquilibrationSteps = 1e4;
     unsigned int finalMClog2steps = log2(1e7);
     unsigned int onebodyDensitySteps = 1e7;
     double omega = 1.0;
-    double omega_z = 1.0;
+    double omega_z = 2.8243;
     double repulsive_a_factor = 0.0043;
     // double repulsive_strength = 0;
     double repulsive_strength = numeric_limits<double>::infinity();
-    double timeStep = 0.8;     // for brute force Metropolis, this corresponds to stepLength
+    double timeStep = 0.15;     // for brute force Metropolis, this corresponds to stepLength
     double onebodyDensity_rMax = 3.5;
     unsigned int onebodyDensity_nBins = 50;
     double BFGS_tol = 1e-5;     // NLopt's xtol_rel relative tolerance criterion for optimization
-    // Next ones are parameters for NNs
+    // Next ones are parameters relevant for NNs
     int Nhid = 10;
-    double Adam_tol = 1e-3;
-    const double lr = 5e-4;
+    double helpDecay = 0.2; // typically 0 < helpDecay <= 0.5
+    double Adam_ktol = 0.9;
+    const double lr = 5e-2;     // 5e-2 looked good
     // const int nPretrainSteps = 5000;   // maximize K
-    const int nPretrainSteps = 20;   // maximize K
+    const int nPretrainSteps = 1000;   // maximize K
     const int nEnergySteps = 40000;  // minimize E
-    const double strengthRate = 2;   // hardcore potential strength increase per step
+    const double strengthRate = 1e12;   // hardcore potential strength increase per step
 
     // int seed = 0;    // if seed == 0, seed is chosen randomly at each RNG construction
     int seed = chrono::system_clock::now().time_since_epoch().count();
     // vector<double> initialParams = { 0.75 };
-    vector<double> initialParams = { 0.50 , 1 };
+    vector<double> initialParams = { 0.50, 2.8243 };
 
     chrono::high_resolution_clock::time_point watch_start, watch_end;
     chrono::duration<double> elapsedTime;
@@ -254,7 +255,7 @@ int main(int argc, char* argv[]) {
         }
         globalLog << endl;
 
-        ofstream logfile("./iofiles/log.csv");
+        ofstream logfile("./iofiles/logNN.csv");
         ofstream outfile("./iofiles/details_results.csv");
         ofstream paramsfile("./iofiles/params.dat");
         VMCOptimizer_NN optimizer(
@@ -266,13 +267,14 @@ int main(int argc, char* argv[]) {
             solverFac,
             seed,
             Nhid,
+            helpDecay,
             numberOfEquilibrationSteps,
             numberOfMetropolisSteps,
             nPretrainSteps,
             nEnergySteps,
             strengthRate,
             lr,
-            Adam_tol,
+            Adam_ktol,
             &logfile, &outfile, &paramsfile
         );
 

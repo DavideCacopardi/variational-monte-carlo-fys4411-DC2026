@@ -24,11 +24,13 @@ public:
     void printOutputToTerminal(class System& system);
     void printOutputToFile(class System& system, std::ofstream& outs);
     void logOutput(const std::vector<double>& params, std::ofstream& outs);
+    void logOutput(std::ofstream& outs);
     void computeAverages();
     double getEnergy() { return m_energy; }
     double getError() { return m_error; }
     double getAcceptanceRatio() { return (double)m_numberOfAcceptedSteps / (double)m_numberOfMetropolisSteps; }
     double getCovariance(unsigned int param_idx) { return m_covariance[param_idx]; }
+    std::vector<double> get_dEdW() const;
 
 private:
     double m_energy = 0;

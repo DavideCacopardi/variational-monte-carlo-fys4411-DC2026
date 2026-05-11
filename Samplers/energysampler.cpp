@@ -46,10 +46,10 @@ void EnergySampler::sample(bool acceptedStep, System* system, std::ofstream* ene
     }
     m_cumulativeEnergy += localEnergy;
     m_cumulativeEnergySQ += sq(localEnergy);
+    std::vector<double> OW = system->computeLogParDer_vect();
     for (unsigned int i = 0; i < m_numberOfParameters; i++) {
-        double dLn = system->computeParamDerivativeLn(i);
-        m_opO[i] += dLn;
-        m_covariance[i] += dLn * localEnergy;
+        m_opO[i] += OW[i];
+        m_covariance[i] += OW[i] * localEnergy;
     }
     m_stepNumber++;
     m_numberOfAcceptedSteps += acceptedStep;
@@ -117,6 +117,17 @@ void EnergySampler::logOutput(const std::vector<double>& params, std::ofstream& 
         << std::endl;
 }
 
+void EnergySampler::logOutput(std::ofstream& outs) {
+    const unsigned int prec = 10, width = 19;
+    outs << std::scientific << std::setprecision(prec)
+        << std::setw(width) << m_energy << ","
+        << std::setw(width) << m_variance << ","
+        << std::setw(width) << m_error << ","
+        << std::setw(width) << m_elapsedTime.count() << ","
+        << std::setw(width) << ((double)m_numberOfAcceptedSteps) / ((double)m_numberOfMetropolisSteps)
+        << std::endl;
+}
+
 void EnergySampler::computeAverages() {
     /* Compute the averages of the sampled quantities.
      */
@@ -130,4 +141,12 @@ void EnergySampler::computeAverages() {
         m_opO[i] /= m_numberOfMetropolisSteps;          // calculate  <O>
         m_covariance[i] -= m_opO[i] * m_energy;         // subtract  <O> <E>
     }
+}
+
+std::vector<double> EnergySampler::get_dEdW() const {
+    std::vector<double> dEdW(m_numberOfParameters);
+    for (unsigned i = 0; i < m_numberOfParameters; i++) {
+        dEdW[i] = 2 * m_covariance[i];
+    }
+    return dEdW;
 }

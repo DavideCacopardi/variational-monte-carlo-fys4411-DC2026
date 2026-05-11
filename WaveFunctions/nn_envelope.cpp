@@ -7,11 +7,11 @@
 #include "nn_envelope.h"
 #include "../particle.h"
 
-NN_envelope::NN_envelope(int N, int D, int Nin, int Nhid)
-    : WaveFunction(Nhid * (2 + Nin), {}), m_N(N), m_D(D), m_Nin(Nin), m_net(Nin, Nhid) {}
+NN_envelope::NN_envelope(int N, int D, int Nin, int Nhid, double helpDecay)
+    : WaveFunction(Nhid * (2 + Nin), {}), m_N(N), m_D(D), m_Nin(Nin), m_net(Nin, Nhid, helpDecay) {}
 
-NN_envelope::NN_envelope(int N, int D, int Nin, int Nhid, const std::vector<double>& params)
-    : WaveFunction(Nhid* (2 + Nin), params), m_N(N), m_D(D), m_Nin(Nin), m_net(Nin, Nhid, params) {}
+NN_envelope::NN_envelope(int N, int D, int Nin, int Nhid, double helpDecay, const std::vector<double>& params)
+    : WaveFunction(Nhid* (2 + Nin), params), m_N(N), m_D(D), m_Nin(Nin), m_net(Nin, Nhid, helpDecay, params) {}
 
 torch::Tensor NN_envelope::encode(std::vector<std::unique_ptr<class Particle>>& particles) {
     std::vector<double> xi;
@@ -30,6 +30,32 @@ double NN_envelope::evaluate(std::vector<std::unique_ptr<class Particle>>& parti
     return m_net.forward(input).item<double>();
 }
 
+std::vector<double> NN_envelope::computeQuantumForce(
+    std::vector<std::unique_ptr<class Particle>>& particles,
+    unsigned int particle_idx
+) {
+    auto pos = encode(particles).squeeze(0)  // [Nin]
+                   .requires_grad_(true);
+
+    auto log_psi = m_net.log_forward(pos.unsqueeze(0)).squeeze(0);
+
+    // ∂(log ψ)/∂pos_i for all coordinates, shape [Nin]
+    auto grad = torch::autograd::grad(
+        { log_psi }, { pos },
+        /*grad_outputs=*/{ torch::ones_like(log_psi) },
+        /*retain_graph=*/false,
+        /*create_graph=*/false
+    )[0];
+
+    // Slice out the D elements belonging to particle_idx
+    // encode() flattens as [x0,y0, x1,y1, ...] so particle k starts at k*D
+    const int start = static_cast<int>(particle_idx) * m_D;
+    std::vector<double> force(m_D);
+    for (int d = 0; d < m_D; ++d)
+        force[d] = 2.0 * grad[start + d].item<double>();
+
+    return force;
+}
 
 // ── ∇²ψ / ψ  via autograd ─────────────────────────────────────────────────
 // Uses the identity:
@@ -71,7 +97,7 @@ double NN_envelope::computeDoubleDerivative(
     return laplacian_log_psi + sq_grad;   // = ∇²ψ / ψ
 }
 
-std::vector<double> NN_envelope::computeLogParDer(
+std::vector<double> NN_envelope::computeLogParDer_vect(
     std::vector<std::unique_ptr<class Particle>>& particles) {
     // Clear any gradients from previous calls
     m_net.zero_grad();

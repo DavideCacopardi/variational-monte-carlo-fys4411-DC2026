@@ -4,58 +4,51 @@
 
 #include "WaveFunctions/nn_envelope.h"
 #include "WaveFunctions/wavefunction.h"
+#include "sampler.h"
 
-class NNsampler {
+class NNsampler : Sampler {
 public:
     NNsampler(
         unsigned int numberOfParticles,
         unsigned int numberOfDimensions,
         unsigned int numberOfParameters,
+        double stepLength,
         unsigned int numberOfMetropolisSteps,
         WaveFunction& wf_train
     );
 
-    void sample_train(bool acceptedStep, class System* system);
-    void sample_pretrain(bool acceptedStep, class System* system);
+    void sample(bool acceptedStep, class System* system, std::ofstream* outfile = nullptr) override;
     void computeAverages();
     void printOutputToTerminal();
 
-    double getEnergy() const;
+    double get_K() const;
+    double get_Kerr() const;
+    // double getEnergy() const;
+    // double getEnergyerr() const;
     double getAcceptanceRatio() const;
 
-    double get_K() const { return m_K; };
-    std::vector<double> get_dEdW() const;
+    // std::vector<double> get_dEdW() const;
     std::vector<double> get_dKdW() const;
 
+    void logOutput(std::ofstream& outs);
+
 private:
-    unsigned int m_numberOfParticles = 0;
-    unsigned int m_numberOfDimensions = 0;
-    unsigned int m_numberOfParameters = 0;
-    unsigned int m_numberOfMetropolisSteps = 0;
     WaveFunction& m_wf_train;
-    bool m_storeEnergyHistory = false;
-    
-    unsigned int m_stepNumber = 0;
-    unsigned int m_numberOfAcceptedSteps = 0;
+
     double m_acceptanceRatio = 0;
-    double m_energy = 0.0;
-    double m_cumulativeEnergy = 0.0;
     double m_B = 0;
     double m_B2 = 0;
     double m_cumulativeB = 0;
     double m_cumulativeB2 = 0;
     double m_K = 0;
+    double m_K2 = 0;
+    double m_Kerr = 0;
 
     const double c_eps = 1e-12; // against numerical errors
-
-    std::vector<double> m_energyHistory;
 
     // <O>
     std::vector<double> m_OW;
     std::vector<double> m_cumulativeOW;
-    // <E O>
-    std::vector<double> m_cumulativeEOW;
-    std::vector<double> m_EOW;
     // <B O>
     std::vector<double> m_cumulativeBOW;
     std::vector<double> m_BOW;

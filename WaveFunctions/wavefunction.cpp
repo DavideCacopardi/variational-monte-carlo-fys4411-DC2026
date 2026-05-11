@@ -70,3 +70,11 @@ std::vector<double> WaveFunction::computeNumericalQuantumForce(std::vector<std::
 
     return qForce;
 }
+
+std::vector<double> WaveFunction::computeLogParDer_vect(std::vector<std::unique_ptr<class Particle>>& particles) {
+    std::vector<double> v(m_numberOfParameters);
+    for (unsigned i = 0; i < m_numberOfParameters; i++) {
+        v[i] = computeParamDerivativeLn(particles, i);
+    }
+    return v;
+}

@@ -7,8 +7,8 @@
 
 class NeuralNetwork : public torch::nn::Module {
 public:
-    NeuralNetwork(int64_t Nin, int64_t Nhid);
-    NeuralNetwork(int64_t Nin, int64_t Nhid, const std::vector<double>& params);
+    NeuralNetwork(int64_t Nin, int64_t Nhid, double helpDecay);
+    NeuralNetwork(int64_t Nin, int64_t Nhid, double helpDecay, const std::vector<double>& params);
     torch::Tensor forward(torch::Tensor input);
     torch::Tensor log_forward(torch::Tensor input);
 
@@ -22,4 +22,6 @@ private:
     torch::Tensor m_b;   // Nhid vector
     
     torch::Tensor m_W2;   // Nhid vector to out
+
+    double m_helpDecay;
 };

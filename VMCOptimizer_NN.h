@@ -27,6 +27,7 @@ public:
         SolverFactory solverFactory,
         int seed,
         int Nhid,
+        double helpDecay,
         int optEquil,
         int nSamples,
         int nPretrainSteps,
@@ -41,6 +42,8 @@ public:
 
     std::vector<double> optimize(std::unique_ptr<WaveFunction> wf_train);
 
+    // deprecated
+    void resetPos(std::vector<std::unique_ptr<class Particle>>& particles, std::vector<std::vector<double>>& pos);
 private:
     double computeMC(const std::vector<double>& params, std::vector<double>& grad);
     unsigned int m_numberOfDimensions;
@@ -51,13 +54,14 @@ private:
     SolverFactory m_solverFactory;
     int m_seed;
     int m_Nhid;
+    double m_helpDecay;
     int m_optEquil;
     int m_nSamples;
     int m_nPretrainSteps;
     int m_nEnergySteps;
     double m_strengthRate;
     double m_lr;
-    double m_Adam_tol;
+    double m_Adam_ktol;
     std::ofstream* m_logfile;
     std::ofstream* m_outfile;
     std::ofstream* m_paramsfile;

@@ -86,6 +86,8 @@ public:
         return computeNumericalParamDerivativeLn(particles, param_idx);
     };
 
+    virtual std::vector<double> computeLogParDer_vect(std::vector<std::unique_ptr<class Particle>>& particles);
+
     /**
      * @brief Computes the quantum drift force acting on a specific particle.
      * * Used in Importance Sampling (Metropolis-Hastings). F = 2 * nabla(Psi) / Psi.

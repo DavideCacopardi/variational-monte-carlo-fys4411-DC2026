@@ -7,19 +7,20 @@
 #include "neuralnetwork.h"
 #include "../particle.h"
 
-NeuralNetwork::NeuralNetwork(int64_t Nin, int64_t Nhid)
-    : m_Nin(Nin), m_Nhid(Nhid) {
+NeuralNetwork::NeuralNetwork(int64_t Nin, int64_t Nhid, double helpDecay)
+    : m_Nin(Nin), m_Nhid(Nhid), m_helpDecay(helpDecay) {
     auto opts = torch::TensorOptions().dtype(torch::kDouble);
     // Xavier/Glorot scaling: keeps variance of activations stable
     double scale1 = std::sqrt(2.0 / (Nin + Nhid)) * 0.01;
     double scale2 = std::sqrt(2.0 / Nhid) * 0.01;
+    scale2 = scale1 = 1;
     m_W1 = register_parameter("W1", torch::randn({ Nin, Nhid }, opts) * scale1);
     m_b = register_parameter("b", torch::randn(Nhid, opts) * scale2);
     m_W2 = register_parameter("W2", torch::randn(Nhid, opts) * scale2);
 }
 
-NeuralNetwork::NeuralNetwork(int64_t Nin, int64_t Nhid, const std::vector<double>& params)
-    : m_Nin(Nin), m_Nhid(Nhid) {
+NeuralNetwork::NeuralNetwork(int64_t Nin, int64_t Nhid, double helpDecay, const std::vector<double>& params)
+    : m_Nin(Nin), m_Nhid(Nhid), m_helpDecay(helpDecay) {
     auto opts = torch::TensorOptions().dtype(torch::kDouble);
     const int64_t nW1 = Nin * Nhid;
     const int64_t nb = Nhid;
@@ -56,9 +57,9 @@ torch::Tensor NeuralNetwork::log_forward(torch::Tensor input) {
     torch::Tensor u_out = torch::mv(hidden, m_W2);
     u_out = torch::clamp(u_out, -20.0, 20.0);    // should be safe for double
 
-    // Gaussian Envelope (-0.5 * r^2)   !!!! THIS HAS TO BE CHANGED ACCORDING TO XI
+    // Gaussian Envelope (-0.2 * r^2)   !!!! THIS HAS TO BE CHANGED ACCORDING TO XI
     torch::Tensor r_squared = input.pow(2).sum(-1, /*keepdim=*/true);
-    torch::Tensor gauss_envelope = -0.5 * r_squared;
+    torch::Tensor gauss_envelope = -m_helpDecay * r_squared;
 
     return u_out + gauss_envelope;
 }
